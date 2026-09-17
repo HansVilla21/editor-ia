@@ -1,0 +1,21 @@
+node_modules/
+out/
+
+# La clave de Gemini nunca se commitea
+.env
+.env.*
+!.env.example
+
+# Estado local de cada usuario
+estado.json
+
+# Los efectos se bajan de Mixkit, no viajan en el repo
+public/sfx/
+
+# Material de cada usuario: sus videos y sus referencias
+videos/
+referencias/
+
+CLAUDE.local.md
+.DS_Store
+Thumbs.db

@@ -1,0 +1,32 @@
+{
+  "name": "editor-ia",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Un proyecto de Claude Code que edita videos verticales cortos y aprende tu estilo",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts Prueba out/prueba.mp4",
+    "doctor": "node scripts/doctor.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ffprobe-installer/ffprobe": "2.1.2",
+    "@remotion/cli": "4.0.484",
+    "@remotion/google-fonts": "4.0.484",
+    "@remotion/install-whisper-cpp": "4.0.484",
+    "ffmpeg-static": "5.2.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.484"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.0",
+    "typescript": "5.7.3"
+  }
+}
