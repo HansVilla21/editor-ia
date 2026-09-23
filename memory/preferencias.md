@@ -5,12 +5,14 @@
 >
 > - `(sin preguntar)` quiere decir que todavía nadie preguntó: se usa el por defecto.
 > - Cuando la persona contesta, se reemplaza **solo la línea Elegido que corresponde** (las
->   secciones con varias partes tienen una línea por parte), siempre con esta forma:
+>   secciones con varias partes tienen una línea por parte, y la etiqueta se conserva:
+>   `**Elegido (tamaño):** …`), siempre con esta forma:
 >   `**Elegido:** <valor> · "<sus palabras>" · <fecha>, en <dónde>`
->   Por ejemplo: `**Elegido:** 1,1× · "me gusta más rápido" · 2026-09-24, en /arrancar`
+>   Por ejemplo: `**Elegido:** 1,1× · "me gusta más rápido" · 2026-09-24, en /arrancar`.
+>   "Dónde" es `/arrancar`, `/calibrar` o el slug del video en el que lo pidió.
 > - Si contesta "no sé", "lo que vos digas" o salta la pregunta, el valor es `por defecto`:
 >   `**Elegido:** por defecto · "lo que vos digas" · 2026-09-24, en /arrancar`. Así se
->   distingue de lo que nunca se preguntó, y `/calibrar` sabe qué revisar.
+>   distingue de lo que nunca se preguntó.
 > - Un matiz que no es una de las opciones ("que el titular sea cortito") no va acá: es una
 >   regla, en `reglas.md`.
 > - Nunca se inventa un valor, y el Por defecto no se borra: es a lo que se vuelve.

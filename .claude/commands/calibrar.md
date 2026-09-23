@@ -23,7 +23,7 @@ Calibrá el editor con lo que la persona vio en su video. Hablá corto y sin jer
 > 7. **Efectos de sonido.** ¿Hay de más, están bien, o faltan?
 > 8. **Portada.** ¿Te gusta cómo salís? ¿La preferís mirando a cámara? ¿Que cambie de diseño en cada video, o siempre igual?
 
-Lo que no contesta, o dice que está bien, o contesta "lo que vos digas", no se toca.
+Sacá las preguntas que no van y numerá corrido. Lo que no contesta, o dice que está bien, o contesta "lo que vos digas", no se toca.
 
 ## Qué se cambia con cada respuesta, y dónde se escribe
 
@@ -39,9 +39,11 @@ Cada ajuste queda escrito en **un** lugar (más la historia en `memory/decisione
 - *Apurado:* si se aceleró, "Velocidad" → 1×; si no, "Silencios" → respiraciones naturales. → `memory/preferencias.md`.
 
 **3. El final**
-- *Muy de golpe:* más toma real al cerrar: `cortar.mjs … --cola 1.5` (de fábrica 1,2) y, en una grabación con tomas, la última pieza de la EDL termina 1,6 s después de la última palabra (de fábrica 1,3). Siempre que siga mirando a cámara: si baja la vista antes, manda el último cuadro bueno. → Regla en `memory/reglas.md`, fase 2, "El final".
-- *Se estira de más:* `cortar.mjs … --cola 0.8`, y `VIDEO_CUADROS` en `datos.ts` terminando entre 0,6 y 0,8 s después de la última palabra. → Regla en `memory/reglas.md`, fase 2.
-- *Terminó mirando a otro lado, o en un gesto raro:* preguntale en una línea si prefiere cortar antes o cerrar con una tarjeta → "Final" en `memory/preferencias.md`.
+- *Muy de golpe:* primero mirá por qué terminó ahí: el último 1,5 s del video con `cuadros.mjs … --tiempos`, cada 0,1 s.
+  - Si terminó porque miró a otro lado, más cola no cambia nada. Preguntale en una línea si prefiere terminar igual un instante después (con el cierre en pantalla casi no se nota) o cerrar con una pantalla final con el texto del cierre → "Final" en `memory/preferencias.md`. Y pasale el consejo 4 de `/antes-de-grabar`: quedarse mirando al lente 1 o 2 segundos al terminar.
+  - Si seguía mirando a cámara, faltó cola: el video tiene que terminar en el último cuadro bueno hasta 1,3 s después de la última palabra, **medido en el video final**. Si se acelera, la cola se achica en la misma proporción: `cortar.mjs … --cola` igual a 1,3 por la velocidad (1,43 con 1,1×) y, en una grabación con tomas, la última pieza de la EDL 1,4 s por la velocidad después de la última palabra. → Regla en `memory/reglas.md`, fase 2, "El final".
+- *Se estira de más:* que termine entre 0,6 y 0,8 s después de la última palabra, medido en el video final: `cortar.mjs … --cola` igual a 0,8 por la velocidad, y `VIDEO_CUADROS` en `datos.ts` en ese cuadro. → Regla en `memory/reglas.md`, fase 2.
+- *Terminó mirando a otro lado, o en un gesto raro:* preguntale en una línea si prefiere cortar antes o cerrar con una pantalla final con el texto del cierre → "Final" en `memory/preferencias.md`.
 
 **4. Subtítulos**
 - *Se leen chicos:* subir a 66 px. *Se leen grandes:* bajar a 52 px (de fábrica, 58). Va en `subtitulos.tamano` de `src/<slug>/marca.ts` en cada video. → "Subtítulos", línea del tamaño, en `memory/preferencias.md`.
@@ -72,6 +74,6 @@ Si una respuesta no entra en ninguna de estas, seguí "Cómo convertir una corre
 ## Cerrar
 
 1. Contale en tres o cuatro líneas qué ajustaste y dónde quedó: "Listo: subtítulos grandes y música más baja (en tus preferencias), y más aire al final de cada frase (regla nueva)."
-2. Ofrecé rehacer el video con los ajustes: "¿Querés que lo rehaga con esto? Sale como una versión nueva y la anterior queda." Por defecto, sí. Se rehace desde la fase más temprana que cambió, como en la sección 6 de `/nuevo-video`.
+2. Ofrecé rehacer el video con los ajustes: "¿Querés que lo rehaga con esto? Sale como una versión nueva y la anterior queda." Por defecto, sí. Se rehace desde la fase más temprana que cambió, como en la sección 6 de `/nuevo-video`. Si ningún ajuste cambia este video (solo cosas para los próximos, o un consejo de grabación), no lo ofrezcas.
 3. Poné `calibrado: true` en `estado.json`.
-4. Agregá una línea en "Calibración" de `memory/decisiones.md`: la fecha, el video y qué se ajustó (o "sin cambios", si todo estaba bien).
+4. Agregá una línea en "Calibración" de `memory/decisiones.md`: la fecha, el video y qué se ajustó en esta calibración (o "sin cambios", si todo estaba bien).

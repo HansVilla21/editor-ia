@@ -74,7 +74,7 @@ Si ya existe, no lo pises: sumale solo las claves que le falten, con esos valore
 
 Una sola ronda de preguntas, todas juntas en un mensaje. Cada una trae entre paréntesis el valor por defecto, que funciona bien: quien no sabe qué contestar no tiene que pensar nada. Mandá esto tal cual:
 
-> Ya funciona todo. Antes de seguir, unas preguntas rápidas sobre cómo querés tus videos. Contestá con el número y tus palabras. Lo que no sepas, saltealo o decime "lo que vos digas": uso lo que va entre paréntesis. Todo se puede cambiar después.
+> Antes de seguir, unas preguntas rápidas sobre cómo querés tus videos. Contestá con el número y tus palabras. Lo que no sepas, saltealo o decime "lo que vos digas": uso lo que va entre paréntesis. Todo se puede cambiar después.
 >
 > 1. **Tu nombre**, y el de tu marca o negocio si tenés, escritos como corresponde: así los subtítulos no los escriben mal. *(Los saco de cómo los decís.)*
 > 2. **¿Dónde vas a publicar?** Instagram, TikTok, YouTube Shorts o varias. *(Varias.)*
@@ -88,7 +88,7 @@ Una sola ronda de preguntas, todas juntas en un mensaje. Cada una trae entre par
 
 Con la respuesta:
 
-- **Escribí `memory/preferencias.md`**, siguiendo las instrucciones de arriba de ese archivo: en cada sección que tocó una pregunta, reemplazá solo la línea **Elegido**, con la fecha. La pregunta 1 va en "Tu nombre y el de tu marca", la 2 en "Plataforma", la 3 en "Trato en los textos de pantalla", la 4 en "Silencios" y en "Velocidad", la 5 en "Subtítulos" (la línea del modo), la 6 en "Música" (la línea de sí o no, y el tipo) y la 7 en "Logos de otras marcas". Lo que saltó o contestó con "no sé": `por defecto` y lo que dijo. Titular, efectos, portada y final quedan `(sin preguntar)`.
+- **Escribí `memory/preferencias.md`**, siguiendo las instrucciones de arriba de ese archivo: en cada sección que tocó una pregunta, reemplazá solo la línea **Elegido**, con la fecha. La pregunta 1 va en "Tu nombre y el de tu marca", la 2 en "Plataforma", la 3 en "Trato en los textos de pantalla", la 4 en "Silencios" y en "Velocidad", la 5 en "Subtítulos" (la línea del modo), la 6 en "Música" (la línea de sí o no, y el tipo) y la 7 en "Logos de otras marcas" (solo logos: no cuenta como permiso para bajar música). Lo que saltó o contestó con "no sé": `por defecto` y lo que dijo. Titular, efectos, portada y final quedan `(sin preguntar)`.
 - Si contestó con algo que no está entre las opciones, anotalo con sus palabras y, si no se puede hacer con el editor, decíselo en una línea y proponé lo más parecido.
 - Si pasó una captura de su marca, seguí `.claude/skills/mi-marca/SKILL.md` para llenarla. Si no, no insistas.
 - Contale en dos o tres líneas qué quedó anotado ("Anotado: tu nombre va como *Ana Ruiz*, subtítulos de a 2 o 3 palabras, música tranqui, te pregunto antes de cada logo") y dónde está el archivo, por si lo quiere cambiar a mano.
