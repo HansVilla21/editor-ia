@@ -78,13 +78,16 @@ alcanza: primero hay que elegir tomas. El flujo completo está en `referencias/t
 ### 3. Palabras con sus tiempos
 
 ```
-ffmpeg -i public/<slug>/video.mp4 -ar 16000 -ac 1 -c:a pcm_s16le <scratch>/audio.wav
-transcribir.mjs <scratch>/audio.wav <scratch>/captions.json --idioma es
+transcribir.mjs public/<slug>/video.mp4 <scratch>/captions.json --idioma es
 palabras.mjs <scratch>/captions.json src/<slug>/palabras.json
 ```
 
+`transcribir.mjs` recibe el video directamente y le saca el audio con el ffmpeg del proyecto: no
+hace falta correr `ffmpeg` por fuera (no está en el PATH de la persona). Si dice que falta
+Whisper, se instala con `npm run whisper`, que lo deja dentro del proyecto, en `.whisper/`.
+
 Segunda opinión sobre los nombres propios y las palabras raras:
-`transcribir.mjs <scratch>/audio.wav <scratch>/gemini.json --motor gemini --nombres "Remotion, Whisper, …"`.
+`transcribir.mjs public/<slug>/video.mp4 <scratch>/gemini.json --motor gemini --nombres "Remotion, Whisper, …"`.
 
 Los subtítulos son lo que dijo, con los nombres propios bien escritos.
 

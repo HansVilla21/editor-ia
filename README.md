@@ -6,25 +6,47 @@ estilo** a partir de los videos que te gustan.
 Le pasás una grabación y te devuelve el reel terminado: cortado, con subtítulos, con
 gráficos, con efectos de sonido y con música.
 
-## Cómo se instala
-
-Abrí un proyecto nuevo en Claude Code y pegá esto:
-
-```
-Cloná https://github.com/HansVilla21/editor-ia en esta carpeta,
-abrilo como proyecto y corré /arrancar
-```
-
-El proyecto se encarga del resto: instala lo que falta, te dice cómo conseguir lo único
-que no puede conseguir solo, y hace un video de prueba para confirmar que todo funciona.
-
 ## Qué necesitás
 
 - **Claude Code.** Es la plataforma donde corre. Sin eso no hay editor.
+- **Node 20.12 o más nuevo** (la versión LTS de [nodejs.org](https://nodejs.org)). Claude
+  Code no lo trae incluido. Si no lo tenés, el arranque te avisa y te dice cómo.
 - **Una clave de Gemini**, que es gratis y se saca en
   [Google AI Studio](https://aistudio.google.com/apikey).
+- **Unos 1,5 GB libres.** Todo queda dentro de la carpeta del proyecto.
+- **En Mac o Linux**, además: `git` y las herramientas para compilar (en Mac,
+  `xcode-select --install`). Whisper se compila en tu máquina.
 
-Nada más. Remotion, ffmpeg, Chrome y Whisper los baja la instalación.
+Lo demás lo baja el arranque: Remotion, ffmpeg, el Chrome con el que renderiza y Whisper.
+No hace falta instalar ffmpeg ni Python a mano.
+
+## Cómo se instala
+
+1. Creá una carpeta vacía con una ruta corta (en Windows, por ejemplo `C:\editor-ia`), abrí
+   Claude Code en ella y pegá esto:
+
+   ```
+   Cloná https://github.com/HansVilla21/editor-ia en esta carpeta
+   ```
+
+2. **Cerrá Claude Code y volvé a abrirlo en esa misma carpeta.** Las reglas y los comandos
+   del proyecto recién se activan cuando Claude Code arranca adentro de él.
+3. Escribí `/arrancar`.
+
+El arranque se encarga del resto: revisa qué falta, lo instala pidiéndote el OK para lo
+pesado, te dice cómo conseguir la clave de Gemini, y hace un video de prueba de 3 segundos
+para confirmar que todo funciona.
+
+## Cómo se usa
+
+- **Editar un video:** pasale la grabación y contale de qué trata ("editá este video,
+  es sobre…"), o escribí `/nuevo-video`. Si la grabación tiene repeticiones, pasale también
+  el guion: con eso elige la última toma buena de cada frase.
+- **Enseñarle tu estilo:** `/estudiar` con 2 o 3 enlaces y qué te gusta de cada uno.
+- **Tu marca:** tus colores, tipografías y lo que nunca querés ver en un video van en
+  `.claude/skills/mi-marca/SKILL.md`. Claude te ayuda a llenarlo.
+- **Corregir:** decile qué no te gustó con tus palabras. Cada video sale en una versión
+  nueva y las anteriores quedan guardadas.
 
 ## Cómo le enseñás tu estilo
 
