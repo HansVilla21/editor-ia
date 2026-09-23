@@ -12,14 +12,15 @@ Implementación viva: el componente de sonido de `src/plantilla/`.
 
 ## Voz
 
-1. Sobre el video ya cortado: `highpass=f=80`, de-esser suave, y compresor
+`voz.mjs public/<slug>/video.mp4 public/<slug>/voz.wav` hace todo, sobre el video final (ya
+cortado, apretado y acelerado si se aceleró):
+
+1. Limpieza: `highpass=f=80` (retumbe de la sala), de-esser suave y compresor
    `threshold=-24dB:ratio=2.5:attack=5:release=90`.
-2. Ganancia **fija** hasta −19 LUFS, más un limitador a −3 dB, y se guarda en
-   `public/<slug>/voz.wav`. **WAV, no AAC**: el AAC mete saturaciones que no estaban.
-   No usar el modo "linear" de loudnorm cuando la ganancia haría pasar el pico verdadero: cae solo a
-   modo dinámico y la voz respira raro. Se calcula la ganancia a mano: `volume = (−19 − medido) dB`.
-3. En Remotion: el video va silenciado y la voz entra como pista de audio aparte. Así se puede
-   normalizar la voz sin tocar la imagen.
+2. Ganancia **fija** hasta −19 LUFS, más un limitador a −3 dB, en **WAV, no AAC**: el AAC mete
+   saturaciones que no estaban. No se usa el modo dinámico de loudnorm: la voz respira raro.
+3. En Remotion el video va silenciado y la voz entra como pista aparte (la plantilla ya lo hace
+   cuando encuentra `voz.wav`). Así se puede normalizar la voz sin tocar la imagen.
 
 ## Música
 
