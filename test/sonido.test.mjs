@@ -247,3 +247,27 @@ test("efectos.mjs --revisar lista los archivos que faltan", async () => {
   assert.doesNotMatch(r.todo, /falta[^\n]*golpe\.wav/);
   assert.equal(existsSync(join(sfx, "nuevo.wav")), false);
 });
+
+// ---------------------------------------------------------------- tramo.mjs
+
+test("tramo.mjs corta el tramo de música pedido, con fundido de entrada", () => {
+  const pista = generar(join(carpeta, "pista.wav"), "aevalsrc=0.5*sin(2*PI*330*t)|0.5*sin(2*PI*330*t):s=44100:d=10", "-c:a", "pcm_s16le");
+  const salida = join(carpeta, "tramo", "musica.wav");
+  const r = correr("tramo.mjs", [pista, salida, "--desde", "2", "--duracion", "5", "--fundido", "0.25"]);
+  assert.equal(r.status, 0, r.stderr);
+  const info = spawnSync(ffmpegStatic, ["-hide_banner", "-i", salida], { encoding: "utf8" }).stderr;
+  const [, h, m, s] = info.match(/Duration: (\d+):(\d+):([\d.]+)/);
+  assert.ok(Math.abs(Number(h) * 3600 + Number(m) * 60 + Number(s) - 5) < 0.03);
+  // Arranca en silencio y sube: los primeros 20 ms, muy por debajo del nivel pleno (-6 dBFS).
+  assert.ok(picoDb(salida) > -7);
+  const inicio = join(carpeta, "tramo", "inicio.wav");
+  spawnSync(ffmpegStatic, ["-v", "error", "-y", "-i", salida, "-t", "0.02", inicio]);
+  assert.ok(picoDb(inicio) < -25, "no tiene fundido de entrada");
+});
+
+test("tramo.mjs avisa si la pista no alcanza para el tramo pedido", () => {
+  const pista = generar(join(carpeta, "corta.wav"), "aevalsrc=0.5*sin(2*PI*330*t):s=44100:d=4", "-c:a", "pcm_s16le");
+  const r = correr("tramo.mjs", [pista, join(carpeta, "tramo", "no.wav"), "--desde", "2", "--duracion", "5"]);
+  assert.notEqual(r.status, 0);
+  assert.match(r.stderr, /dura 4\.0/);
+});
