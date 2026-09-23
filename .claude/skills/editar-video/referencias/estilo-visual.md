@@ -126,20 +126,56 @@ nombrado · "lo explicás una y otra vez" → burbujas repetidas que colapsan en
 
 ## Logos de marcas
 
-Cada herramienta, marca o plataforma nombrada lleva **su logo real**. Nunca dibujar uno parecido.
+Cada herramienta, marca o plataforma que se nombra lleva **su logo real**. Nunca se dibuja uno
+parecido.
 
-- **Antes de descargar, preguntar.** La persona puede dar permiso permanente una vez y se anota en
-  `memory/`; hasta entonces, se pregunta cada vez.
-- Fuentes: Simple Icons (CC0, monocromo, sirve para la mayoría) y el kit de marca oficial o Wikimedia
-  Commons para las multicolor. Guardarlos en `public/logos/` con un catálogo al lado: fuente,
-  licencia, color y fecha. Buscar ahí antes de bajar nada.
-- Sobre fondo oscuro, los logos de color oscuro van en su variante blanca o con `filter: invert(1)`.
-  Los multicolor van tal cual.
-- Dónde: en la cabecera del panel, 64 px a la izquierda del título; en el panel, de 260 a 330 px con
-  un pop en la palabra que nombra la marca (uno por palabra); dentro del titular del gancho, a la
-  altura de la línea; y en la portada.
-- Nunca: flotando sobre la cara en plano completo, deformado, recoloreado —salvo blanco o negro por
-  contraste— ni puesto de forma que sugiera un patrocinio que no existe.
+**Permiso.** Bajar un logo es descargar de internet, y se hace según lo que la persona eligió en
+`memory/preferencias.md`, campo **logos**:
+
+- *Permiso permanente:* se bajan sin preguntar y se dice al entregar cuáles se bajaron.
+- *Preguntar cada vez* (y mientras no haya respuesta): una sola pregunta con todos los del video
+  juntos, antes de bajar ninguno: "¿Bajo los logos de GitHub y Supabase de Simple Icons?".
+- *Nunca:* no se baja ninguno, y la marca se nombra con texto.
+
+**Cómo se consiguen.** Con `logo.mjs "<marca>"`, escrita como la escribe la marca ("Google Gemini",
+"n8n"):
+
+1. Busca primero en `public/logos/catalogo.json`: lo que ya está no se vuelve a bajar.
+2. Si no está, lo baja de Simple Icons (SVG de una sola tinta, CC0 1.0 salvo los que traen licencia
+   propia, que el script anota y avisa) a `public/logos/<slug>.svg`, y lo anota en el catálogo con
+   fuente, licencia, color de la marca y fecha. Imprime la línea para `datos.ts`: `logo: "<slug>"`.
+3. Si Simple Icons no la tiene, lo dice y sugiere nombres parecidos (con `--slug`, si era otra forma
+   de escribirla). El oficial sale del kit de prensa de la marca ("Brand", "Press", "Media kit"): la
+   versión para fondo oscuro, en SVG o PNG transparente, y se registra con `logo.mjs "<marca>"
+   --importar <archivo> --fuente <página del kit>` → `public/logos/<slug>-oficial.<ext>`. Si la
+   marca no publica su logo, va con texto.
+
+Los logos no viajan en el repo: cada persona los baja en su proyecto.
+
+**Dónde van, en `datos.ts`.**
+
+- En la cabecera de cualquier escena del split: `logo: "<slug>"`. 64 px de alto, a la izquierda
+  del título y centrado con su línea; entra con pop junto al título, que se achica para dejarle
+  lugar.
+- En una `tarjeta` sin captura: con `logo`, va grande en la tarjeta clara (300 px; 260 si el primer
+  renglón de `texto` va como pie), con pop en `logoEn`, el segundo de la palabra que nombra la marca.
+  No se repite en la cabecera. Si hay captura, la captura manda y el logo queda arriba.
+- En el gancho: `TITULAR_LOGO = "<slug>"`, delante de la primera línea, a la altura de la letra.
+- En la portada: `PORTADA.logo`, 120 px arriba de la etiqueta.
+
+Si el archivo no está, la plantilla lo omite (el título ocupa todo el ancho) y lo avisa en la
+consola del render: `[revisión] Falta el logo "<slug>"…`.
+
+**Color.** El de Simple Icons va blanco sobre el panel, el titular y la portada (del color del
+texto de `mi-marca`) y negro sobre la tarjeta clara. El oficial (`-oficial`) va tal cual, con sus
+colores; si es ancho, ocupa hasta 2,5 veces su alto. `--blanco` deja además
+`public/logos/<slug>-blanco.svg`, para usarlo fuera de la composición.
+
+**Nunca:** dibujar, redibujar o inventar un logo; deformarlo, rotarlo o recolorearlo (salvo blanco
+o negro por contraste); ponerlo sobre la cara en plano completo; bajarlo sin el permiso que
+corresponde o de una fuente sin licencia clara (un buscador de imágenes, una captura recortada);
+ni ponerlo de forma que sugiera un patrocinio que no existe: el logo nombra la herramienta de la
+que se habla. El logo de la propia persona sale de `mi-marca`, no de acá.
 
 ## Datos y capturas
 
@@ -181,26 +217,28 @@ En la copia se edita **solo `datos.ts`**. Todos los tiempos van en segundos del 
 | `DIR` | la carpeta del video en `public/` | la pone `npm run nuevo` |
 | `VIDEO_CUADROS` | cuadros de `video.mp4`. El reel dura eso y termina en toma real: sin congelar | `sondear.mjs` (duración × 30, hacia abajo) |
 | `TITULAR`, `ENFASIS` | el titular del gancho (1 o 2 líneas) y las palabras que van con el acento en el titular y la portada | el guion visual |
+| `TITULAR_LOGO` | el logo delante del titular, o `null` | `logo.mjs`, con permiso ("Logos de marcas") |
 | `BLOQUES` | `{desde, hasta, tipo: "full" \| "split", escena?}`, cada uno en la primera palabra de su frase | `palabras.json` |
 | `CORTES` | los jump cuts, en segundos | `tramos.json` (`inicioSalida`) |
 | `ENCUADRE` | `{cy, pelo, menton, cx?}` en píxeles de 1080×1920 | `encuadre.json`, verificado con `guia.png` |
 | `CUES` | efectos extra: `{clave, en, vol?, dura?}` con la clave del catálogo | `referencias/efectos.json` |
 | `CTA` | `{desde, pide, palabra, recibe}`: "Comentá / PALABRA / y te mando…" | lo que dice al cerrar |
 | `PILDORA` | fondo oscuro detrás del titular o de los subtítulos | fondo claro o ropa clara |
-| `PORTADA` | etiqueta, título, subtítulo e ítems | el guion visual |
+| `PORTADA` | etiqueta, título, subtítulo, ítems y `logo` | el guion visual |
 | `PALABRAS` | `palabras.json`, lo que dijo con los nombres bien escritos | `palabras.mjs` |
 
 Escenas del panel, solo en split (en full no se pone nada sobre la cara):
 
 - `tarjeta`: una captura de `public/<slug>/` en tarjeta clara, con el paneo de captura. Sin captura,
-  muestra los renglones de `texto` y avisa qué archivo falta.
+  el logo grande si hay `logo` (con pop en `logoEn`), o los renglones de `texto`; y avisa qué
+  archivo falta.
 - `lista`: filas que entran con blurIn en su palabra (`en`), con estado opcional `ok`, `alerta` o
   `error`. Hasta 4 a tamaño pleno; con más, se achican.
 - `contador`: una cifra verificada que cuenta de `desde` a `hasta`, con prefijo, sufijo y nota.
 - `comando`: texto tipeado y renglones de salida cuando termina.
 
-Todas llevan cabecera: `etiqueta` ("PASO 1 / 3"), `tags`, `titulo` (se achica solo si es largo) y
-`fuente`. Una escena nueva se agrega en `escenas/`, con su forma en `tipos.ts` y su caso en
+Todas llevan cabecera: `etiqueta` ("PASO 1 / 3"), `tags`, `titulo` (se achica solo si es largo),
+`fuente` y `logo` (el slug de `public/logos/`). Una escena nueva se agrega en `escenas/`, con su forma en `tipos.ts` y su caso en
 `EscenaDelBloque.tsx`.
 
 Lo que hace sola, para no reinventarlo en cada video:
@@ -216,14 +254,15 @@ Lo que hace sola, para no reinventarlo en cada video:
   tecleo del comando y el impacto del cierre. `CUES` es para lo demás. Siempre con el pico en el
   cuadro del evento.
 - Cada archivo se busca en `public/` antes de usarlo. Sin video, un marcador con las líneas del
-  encuadre; sin voz, suena el audio del video; sin música o sin un efecto, se omite. Un clon recién
-  bajado renderiza el ejemplo sin nada.
+  encuadre; sin voz, suena el audio del video; sin música, sin un efecto o sin un logo, se omite. Un
+  clon recién bajado renderiza el ejemplo sin nada.
 - Avisa en la consola del render (`[revisión] …`): bloques cortos, split sin escena, titular que no
-  entra, cierre fuera de lugar, archivos que faltan.
+  entra, cierre fuera de lugar, archivos y logos que faltan.
 
 Archivos: `Reel.tsx` arma todo; `Toma.tsx`, `Transicion.ts`, `Panel.tsx` con `escenas/`,
 `Subtitulos.tsx`, `Titular.tsx`, `Cta.tsx`, `Sonido.tsx` con `cues.ts` y `Portada.tsx` son las
-piezas; `encuadre.ts` tiene las fórmulas y `tiempos.ts` el paso a cuadros. `marca.ts` tiene colores y
+piezas; `Logo.tsx` elige el archivo de cada logo y su tinta; `encuadre.ts` tiene las fórmulas y
+`tiempos.ts` el paso a cuadros. `marca.ts` tiene colores y
 tipografías: lo que diga `mi-marca` se carga una sola vez en `MI_MARCA`, y lo heredan los videos
 nuevos.
 
