@@ -16,6 +16,7 @@ import {
   asegurarCarpeta,
 } from "./_comun.mjs";
 import { armarTira, buscarFuente } from "./_hojas.mjs";
+import { avisosUnaVez } from "./_consola.mjs";
 
 const AYUDA = `
 previa.mjs — cuadros sueltos de la composición, sin renderizar el video
@@ -64,6 +65,9 @@ if (opciones.props) {
     morir(`No pude leer ${corta(opciones.props)}: ${e.message}`);
   }
 }
+
+// Cada cuadro se renderiza en una pestaña nueva, y cada pestaña repite los avisos de la plantilla.
+avisosUnaVez();
 
 const { bundle } = await import("@remotion/bundler");
 const { selectComposition, renderStill } = await import("@remotion/renderer");

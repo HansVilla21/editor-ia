@@ -5,9 +5,13 @@
  * (escalar, etiquetar y apilar). Si no aparece una tipografía en la máquina, la hoja sale
  * sin etiqueta encima y la correspondencia se imprime igual en pantalla.
  */
-import { existsSync } from "node:fs";
+import { existsSync, rmSync } from "node:fs";
+import { cpus } from "node:os";
 
 import { ffmpeg, temporal, corta, asegurarCarpeta } from "./_comun.mjs";
+
+/** Cuántos cuadros se sacan a la vez. Cada ffmpeg ya usa varios núcleos para decodificar. */
+const PARALELO = Math.max(1, Math.min(4, Math.floor(cpus().length / 2)));
 
 const FUENTES = [
   "C:/Windows/Fonts/consola.ttf",
@@ -32,24 +36,42 @@ export function buscarFuente() {
 const escapar = (texto) =>
   String(texto).split("\\").join("/").replace(/:/g, "\\:").replace(/'/g, "\\'");
 
-/** Saca un cuadro suelto del video, a tamaño completo. */
-export async function extraerCuadro(video, segundos, salida) {
+/**
+ * Saca un cuadro suelto del video: el más cercano a `segundos`. Con `ancho`, ya achicado.
+ *
+ * `-ss` antes de `-i` salta al cuadro clave anterior y decodifica desde ahí hasta el pedido: es
+ * exacto y no recorre el archivo entero. ffmpeg devuelve el primer cuadro que empieza en ese
+ * segundo o después; por eso se pide medio cuadro antes (`fps` es el del archivo), y sale el más
+ * cercano, el mismo que dice la etiqueta f = round(segundos * 30).
+ */
+export async function extraerCuadro(video, segundos, salida, { fps = null, ancho = null } = {}) {
   asegurarCarpeta(salida);
+  const medio = fps ? 0.5 / fps : 0;
+  const desde = Math.max(0, segundos - medio);
   await ffmpeg([
-    "-v",
-    "error",
-    "-y",
-    "-ss",
-    String(Math.max(0, segundos)),
-    "-i",
-    video,
-    "-frames:v",
-    "1",
-    "-update",
-    "1",
+    "-v", "error", "-y",
+    "-ss", desde.toFixed(6),
+    "-i", video,
+    ...(ancho ? ["-vf", `scale=${ancho}:-2`] : []),
+    "-frames:v", "1",
+    "-update", "1",
     salida,
   ]);
   return salida;
+}
+
+/** Corre las tareas de a `cuantas` por vez y devuelve los resultados en el orden de entrada. */
+async function enParalelo(tareas, cuantas) {
+  const resultados = new Array(tareas.length);
+  let siguiente = 0;
+  const trabajar = async () => {
+    while (siguiente < tareas.length) {
+      const i = siguiente++;
+      resultados[i] = await tareas[i]();
+    }
+  };
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(cuantas, tareas.length)) }, trabajar));
+  return resultados;
 }
 
 /**
@@ -100,14 +122,18 @@ export async function armarTira(piezas, salida, { ancho = 240 } = {}) {
 /**
  * Arma todas las hojas de una lista de momentos.
  * `momentos` es [{segundos, etiqueta}]; devuelve las rutas escritas.
+ *
+ * Cada cuadro se saca con su propia búsqueda y ya al ancho de la hoja, varios a la vez: un crudo
+ * 4K de 4 minutos no se decodifica entero, ni se escriben cientos de PNG de 4K para achicarlos
+ * después.
  */
-export async function hojasDeContacto(video, momentos, prefijo, { porHoja = 6, ancho = 240 } = {}) {
-  const piezas = [];
-  for (const [i, m] of momentos.entries()) {
+export async function hojasDeContacto(video, momentos, prefijo, { porHoja = 6, ancho = 240, fps = null, paralelo = PARALELO } = {}) {
+  const tareas = momentos.map((m, i) => async () => {
     const temp = temporal(`-cuadro${String(i).padStart(4, "0")}.png`);
-    await extraerCuadro(video, m.segundos, temp);
-    if (existsSync(temp)) piezas.push({ ruta: temp, etiqueta: m.etiqueta });
-  }
+    await extraerCuadro(video, m.segundos, temp, { fps, ancho });
+    return existsSync(temp) ? { ruta: temp, etiqueta: m.etiqueta } : null;
+  });
+  const piezas = (await enParalelo(tareas, paralelo)).filter(Boolean);
   if (piezas.length === 0) return [];
 
   const hojas = [];
@@ -120,6 +146,7 @@ export async function hojasDeContacto(video, momentos, prefijo, { porHoja = 6, a
     await armarTira(grupo, salida, { ancho });
     hojas.push({ ruta: salida, etiquetas: grupo.map((g) => g.etiqueta) });
   }
+  for (const pieza of piezas) rmSync(pieza.ruta, { force: true });
   return hojas;
 }
 

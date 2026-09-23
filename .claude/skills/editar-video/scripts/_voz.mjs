@@ -6,14 +6,19 @@ import { ffmpeg, temporal, sondear, morir, corta } from "./_comun.mjs";
 import {
   CARPETA_WHISPER,
   WHISPER_VERSION,
+  AYUDA_WHISPER_DIR,
+  carpetaWhisper,
   whisperInstalado,
   instalarWhisper,
 } from "../../../../scripts/whisper.mjs";
 
 export { WHISPER_VERSION, whisperInstalado };
 
-/** Whisper vive dentro del proyecto, en .whisper/ (ver scripts/whisper.mjs). */
-export const carpetaWhisperPorDefecto = () => CARPETA_WHISPER;
+/**
+ * Whisper vive dentro del proyecto, en .whisper/, salvo que WHISPER_DIR (en el entorno o en .env)
+ * diga que ya está instalado en otro lado (ver scripts/whisper.mjs).
+ */
+export const carpetaWhisperPorDefecto = () => carpetaWhisper();
 
 /**
  * Deja el audio como lo quiere Whisper: WAV de 16 kHz, mono, PCM de 16 bits.
@@ -68,8 +73,10 @@ export async function tramoConAire(entrada, inicio, fin, aire = 0.3) {
   return destino;
 }
 
-export const AYUDA_WHISPER = (carpeta, modelo) =>
-  [
+export function AYUDA_WHISPER(carpeta, modelo) {
+  // La carpeta salió de WHISPER_DIR: el arreglo es la ruta, no instalar.
+  if (carpeta === carpetaWhisper() && carpeta !== CARPETA_WHISPER) return AYUDA_WHISPER_DIR(carpeta, modelo);
+  return [
     `Whisper no está instalado en ${carpeta}.`,
     "",
     "Se baja una sola vez y queda dentro del proyecto, en .whisper/:",
@@ -78,7 +85,10 @@ export const AYUDA_WHISPER = (carpeta, modelo) =>
     "",
     "Son unos 490 MB con el modelo small. Mientras tanto, la segunda opinión de Gemini",
     "transcribe sin instalar nada:  --motor gemini",
+    "",
+    "Si ya tenés whisper.cpp 1.5 en otra carpeta, poné WHISPER_DIR=<esa carpeta> en .env.",
   ].join("\n");
+}
 
 export async function asegurarWhisper(carpeta, modelo) {
   try {
