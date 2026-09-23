@@ -143,15 +143,19 @@ Listo: el video "${r.slug}" tiene su lugar.
 
 ${filas.map(([ruta, que]) => `  ${ruta.padEnd(ancho)}${que}`).join("\n")}
 
-Qué sigue:
-  1. Cortar:    node ${s}/cortar.mjs <grabación> ${r.carpetaPublic}/video.mp4 <scratch>/tramos.json
-  2. Palabras:  transcribir.mjs ${r.carpetaPublic}/video.mp4 <scratch>/captions.json
-                palabras.mjs <scratch>/captions.json ${r.carpetaSrc}/palabras.json
+Qué sigue (el detalle de cada paso está en las fases de la skill editar-video; las
+herramientas están en ${s}/):
+  1. Corte:     montar.mjs (si la grabación es cruda) → cortar.mjs → apretar.mjs
+                → acelerar.mjs solo si la persona lo pidió. Todo a ${r.carpetaPublic}/video.mp4
+  2. Palabras:  transcribir.mjs + palabras.mjs sobre ese video final → ${r.carpetaSrc}/palabras.json
+                cortes.mjs → la línea CORTES para datos.ts
   3. Encuadre:  cara.mjs ${r.carpetaPublic}/video.mp4 ${r.carpetaSrc}/encuadre.json (y mirar guia.png)
   4. Datos:     llenar ${r.carpetaSrc}/datos.ts (VIDEO_CUADROS, BLOQUES, CORTES, ENCUADRE, TITULAR, CTA…)
-  5. Revisar:   node ${s}/previa.mjs ${r.entrada} ${r.id} <scratch>/previa "0,…" --escala 0.35 --hoja 5
-  6. Render:    npx remotion render ${r.entrada} ${r.id} ${r.carpetaVideos}/versiones/v1-primera.mp4
-  7. Portada:   npx remotion still ${r.entrada} ${r.idPortada} ${r.carpetaVideos}/portada.png
+  5. Revisar:   previa.mjs ${r.entrada} ${r.id} <scratch>/previa "0,…" --escala 0.35 --hoja 5
+  6. Sonido:    voz.mjs, actividad.mjs, efectos (npm run efectos) y música (musica.mjs, tramo.mjs)
+  7. Render:    npx remotion render ${r.entrada} ${r.id} ${r.carpetaVideos}/versiones/v1-primera.mp4
+                → mezcla.mjs → nivelar.mjs … video-final.mp4 -14 --copiar-video
+  8. Portada:   npx remotion still ${r.entrada} ${r.idPortada} ${r.carpetaVideos}/portada.png
 
 Para verlo mientras se arma: npx remotion studio ${r.entrada}
 `;

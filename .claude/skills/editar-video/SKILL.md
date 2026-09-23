@@ -53,8 +53,9 @@ Hoja de contacto para ver qué hay: `cuadros.mjs <grabación> <scratch>/hoja --c
 Arrancar el video con `npm run nuevo <slug>` (minúsculas, números y guiones). Copia `src/plantilla/`
 a `src/<slug>/`, arma `src/entries/<slug>.tsx` con los ids `<Slug>` y `<Slug>Portada` (de
 `mi-video` sale `MiVideo`), y crea `public/<slug>/` y `videos/<YYYY-MM-DD>-<slug>/versiones/`. Si el
-slug ya existe no toca nada. En la copia se edita **solo `datos.ts`**: qué es cada dato y de dónde
-sale está en `referencias/estilo-visual.md`, sección "La plantilla".
+slug ya existe no toca nada. Por video se edita `datos.ts`: qué es cada dato y de dónde sale está en
+`referencias/estilo-visual.md`, sección "La plantilla". Si el guion pide algo que la plantilla no
+tiene, la escena nueva va en `escenas/` y se avisa al entregar; el resto de la copia no se toca.
 
 **Verificación:** el script avisa si en la copia quedó alguna referencia a la plantilla. Si quedara,
 el render no falla: renderiza el contenido de la plantilla, y eso se descubre tarde.
@@ -66,8 +67,9 @@ cortar.mjs <grabación> public/<slug>/video.mp4 <scratch>/tramos.json --umbral -
 apretar.mjs public/<slug>/video.mp4 public/<slug>/video.mp4 <scratch>/quitados.json
 ```
 
-`cortar.mjs` saca los silencios y deja el resto a 1080×1920 y 30 fps (`--tamano 1440x2560` si la
-grabación es 4K y vas a usar acercamientos). Deja 0,08 s antes y 0,14 s después de cada frase para
+`cortar.mjs` saca los silencios y deja el resto a 1080×1920 y 30 fps. `--tamano 1440x2560` solo si la
+grabación es 4K y vas a acercar más que el zoom de la plantilla (1,08): con la plantilla tal cual,
+1080×1920 alcanza. Deja 0,08 s antes y 0,14 s después de cada frase para
 no morder una "s" final, tira los sonidos sin voz (clics, monedas, golpes) que quedarían como
 parpadeos, y deja 1,2 s de toma real después de la última palabra (`--cola`). `apretar.mjs` es la
 segunda pasada: saca las respiraciones y el aire muerto que el ruido de sala le esconde al corte,
@@ -77,14 +79,21 @@ sin tocar las "s" finales, el primer 0,3 s ni los últimos 0,8 s.
 - En `tramos.json`, `descartados`: si hay una palabra ahí, bajar `--tramo-minimo`.
 - `cortar.mjs` lista las pausas internas de más de 0,35 s que quedaron y `apretar.mjs` imprime
   cuánto sacó. Si sacó mucho, mirar con `--solo-mapa`: cada pausa tiene que caer entre dos frases.
-- Entre la última palabra y el último cuadro tiene que haber al menos 1 s.
+- **El final:** mirar la cola con `cuadros.mjs public/<slug>/video.mp4 <scratch>/cola --tiempos "…"`
+  (el último 1,5 s, cada 0,1 s). El video termina en el último cuadro en que la persona sigue
+  mirando a cámara o sonriendo: entre 0,4 y 1,3 s después de la última palabra. Si baja la vista
+  antes, el corte va ahí (`VIDEO_CUADROS` en `datos.ts`). Nunca un cuadro congelado. Acelerar achica
+  la cola en la misma proporción.
 
 ### 2b. Si la grabación es cruda, con repeticiones
 
 Cuando la persona lee frase por frase, con pausas largas, y repite cuando se traba, primero hay que
 elegir tomas. **Pedile el guion** (una frase por línea): sin él no hay contra qué comparar. El flujo
 completo está en `referencias/tomas.md`. El orden es montar → cortar → apretar → (acelerar, si lo
-pidió) → transcribir el archivo final.
+pidió) → transcribir el archivo final. Sobre un montaje, `cortar.mjs` va con `--umbral -33 --minimo
+0.24` (tomas.md, paso 7): entre tomas queda ruido de sala. Si `tomas.mjs` avisa líneas del guion que
+no se grabaron o cosas dichas fuera del guion, **preguntale** qué hacer con cada una antes de armar
+la EDL: no se decide solo.
 
 ### 2c. Acelerar (opcional, solo si la persona lo pide)
 
@@ -101,12 +110,15 @@ Siempre sobre el archivo que salió de la fase 2 (apretado y, si se aceleró, ac
 ```
 transcribir.mjs public/<slug>/video.mp4 <scratch>/captions.json --idioma es
 palabras.mjs <scratch>/captions.json src/<slug>/palabras.json
-cortes.mjs <scratch>/tramos.json --quitados <scratch>/quitados.json [--velocidad 1.1]
+cortes.mjs <scratch>/tramos.json --quitados <scratch>/quitados.json [--montaje <scratch>/montaje.json] \
+           [--velocidad 1.1] --video public/<slug>/video.mp4
 ```
 
 Si `transcribir.mjs` dice que falta Whisper, se instala con `npm run whisper` (dentro del proyecto,
-en `.whisper/`). `cortes.mjs` imprime la línea `CORTES` lista para `datos.ts`, ya corrida por lo que
-sacó `apretar.mjs` y por la velocidad: los cortes de `apretar.mjs` no son `CORTES`.
+en `.whisper/`). `cortes.mjs` imprime la línea `CORTES` lista para `datos.ts`: suma las costuras
+entre tomas (`--montaje`), la corre por lo que sacó `apretar.mjs` y por la velocidad, y con `--video`
+lleva cada corte al cuadro donde la imagen salta de verdad. Los cortes de `apretar.mjs` no son
+`CORTES`: caen entre frases y no llevan zoom.
 
 Segunda opinión sobre los nombres propios y las palabras raras:
 `transcribir.mjs public/<slug>/video.mp4 <scratch>/gemini.json --motor gemini --nombres "Remotion, Whisper, …"`.
@@ -178,7 +190,8 @@ en `referencias/sonido.md`.
 - **Efectos:** salen de `referencias/efectos.json`. Si falta alguno (`efectos.mjs --revisar`), pedir
   el OK y correr `npm run efectos` (15 archivos de Mixkit, unos 7 MB). Un efecto nuevo se mide antes
   con `efecto.mjs`.
-- **Música:** candidatas de Mixkit → `musica.mjs` → escuchar → `tramo.mjs <pista> <tramo.wav>
+- **Música:** candidatas de Mixkit → `musica.mjs <carpeta> --pedido "<lo que pidió, con sus palabras>"
+  [--bpm 70-95]` → escuchar → `tramo.mjs <pista> <tramo.wav>
   --desde <arranque> --duracion <video + 4>` → `nivelar.mjs <tramo.wav> public/<slug>/musica.m4a -33`.
 
 ### 9. Render y master

@@ -97,12 +97,15 @@ de cada línea y que el resultado suene corrido.
 
 10. **Transcribir el archivo final y verificar.** Siempre el que salió del último paso (acelerado,
     si se aceleró), nunca uno anterior: los subtítulos y los cues salen de acá. Los `CORTES` salen
-    de `cortes.mjs tramos.json --quitados <scratch>/quitados.json [--velocidad 1.1]`, que imprime
-    la línea lista para `datos.ts` ya corrida por lo que sacó apretar y por la velocidad.
+    de `cortes.mjs tramos.json --montaje <scratch>/montaje.json --quitados <scratch>/quitados.json
+    [--velocidad 1.1] --video public/<slug>/video.mp4`, que imprime la línea lista para `datos.ts`:
+    con las costuras entre tomas, corrida por lo que sacó apretar y por la velocidad, y ajustada al
+    cuadro donde la imagen salta de verdad.
     Leerlo contra la secuencia esperada: ninguna frase dos veces, ninguna palabra partida. Si la
     transcripción escribe un final raro, no tocar nada todavía: comparar la forma de onda del crudo
     y la del corte con `energia.mjs`. Suele ser un error de transcripción y no un corte mal puesto.
-    Mirá también el final: entre la última palabra y el último cuadro tiene que haber al menos 1 s.
+    Mirá también el final (sección de abajo): la cola tiene que ser toma real con la persona
+    todavía mirando a cámara.
 
 11. **Contar al entregar** qué tomas se descartaron, en qué se apartó lo dicho del guion, y si se
     aceleró, a qué velocidad.
@@ -117,8 +120,12 @@ funciona es terminar sobre **toma real**:
   persona se queda mirando a cámara o sonríe antes de cortar la grabación: ese es el cierre.
 - `cortar.mjs` conserva ese tramo con `--cola 1.2` (es el valor por defecto) en lugar de
   recortarlo como silencio, y `apretar.mjs` no toca los últimos 0,8 s.
-- En la composición, la duración es la del video, sin `<Freeze>`: el llamado a la acción entra
-  sobre la toma real.
+- **Mirar la cola antes de cerrar.** No todas las personas se quedan quietas: hay quien baja la
+  vista a los 0,5 s. Con `cuadros.mjs` sobre el último 1,5 s (cada 0,1 s), el video termina en el
+  último cuadro en que sigue mirando a cámara o sonriendo, aunque eso deje menos de 1 s de cola.
+  Entre 0,4 y 1,3 s después de la última palabra está bien; menos de 0,4 se siente cortado.
+- En la composición, la duración es la del video (o la del último cuadro bueno de la cola), sin
+  `<Freeze>`: el llamado a la acción entra sobre la toma real.
 - Si vas a necesitar una portada, pedile a la persona que en ese final mire al lente: queda un
   cuadro bueno para elegir.
 

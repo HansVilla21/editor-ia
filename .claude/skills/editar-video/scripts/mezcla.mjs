@@ -113,7 +113,13 @@ for (let i = 0; i < largo; i++) vozEscalada[i] = ganancia * voz[i];
 const vozDb = aDb(rms(vozEscalada));
 const restoDb = aDb(rms(resto));
 
-console.log(`desfase ${desfase} muestras (${fijo((1000 * desfase) / muestreo, 1)} ms), la voz entra a ${fijo(ganancia, 3)} de su nivel`);
+const desfaseMs = (1000 * desfase) / muestreo;
+console.log(
+  `desfase ${desfase} muestras (${fijo(desfaseMs, 1)} ms), la voz entra a ${fijo(ganancia, 3)} de su nivel` +
+    (Math.abs(desfaseMs) <= 100
+      ? "  (normal: es el retardo del códec AAC, y ya se compensó)"
+      : "  AVISO: más de 100 ms. ¿Es la voz de este render? Si la voz no está alineada, la medición no sirve"),
+);
 const picoMezcla = picoCanales();
 console.log("");
 console.log(`general   voz ${fijo(vozDb, 1)} dB   música+efectos ${fijo(restoDb, 1)} dB   diferencia ${fijo(vozDb - restoDb, 1)} dB   pico de la mezcla (canal más fuerte) ${fijo(picoMezcla, 1)} dB`);
