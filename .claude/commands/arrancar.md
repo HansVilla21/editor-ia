@@ -39,6 +39,8 @@ Si falta la clave:
 
 Contale para qué se usa: transcribir lo que dice, elegir las mejores tomas, escuchar la música candidata y ubicar la cara para encuadrar.
 
+Si no puede sacarla ahora ("no sé", "después"), seguí con el arranque: el render de prueba y las preferencias no la necesitan. Avisale que para el primer video sí hace falta, porque sin ella no se eligen tomas ni se ubica la cara, y que el aviso al abrir se lo va a recordar. Si prefiere, la sacás juntos: le decís paso a paso qué tocar en la página.
+
 ## 4. Whisper
 
 Whisper es el programa que saca cada palabra con su tiempo exacto, para los subtítulos. Se baja una sola vez y queda **dentro del proyecto**, en la carpeta `.whisper/`: no instala nada en el resto de la máquina.
@@ -50,7 +52,7 @@ Antes de bajarlo, pedile el OK con estos datos: son unos 490 MB y tarda unos min
 
 ## 4b. Efectos de sonido (opcional)
 
-Los videos llevan sonidos cortos: un whoosh en los cambios de plano, clics, un impacto al cierre. Vienen de Mixkit, gratis y sin atribución, pero su licencia no deja redistribuirlos, y por eso no vienen en el proyecto. Pedile el OK con estos datos: son 15 archivos, unos 7 MB, y quedan en `public/sfx/`. Con el OK, corré `npm run efectos`. Si alguno falla, el comando dice cuál y cómo bajarlo a mano: contáselo simple. Si prefiere esperar, seguí; se bajan antes del primer video con el mismo comando.
+Los videos llevan sonidos cortos: un whoosh en los cambios de plano, clics, un impacto al cierre. Vienen de Mixkit, gratis y sin atribución, pero su licencia no deja redistribuirlos, y por eso no vienen en el proyecto. Pedile el OK con estos datos: son 15 archivos, unos 7 MB, y quedan en `public/sfx/`. Con el OK, corré `npm run efectos`. Si alguno falla, el comando dice cuál y cómo bajarlo a mano: contáselo simple. Si prefiere esperar, seguí; se bajan antes del primer video con el mismo comando. Si contesta "no sé" o "lo que vos digas", bajalos: son chicos y los usa el estilo neutro.
 
 ## 5. La prueba de fuego
 

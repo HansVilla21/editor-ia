@@ -3,7 +3,9 @@
 > **Para Claude.** Este archivo se lee entero en la fase 1 de cada video, y cada regla se
 > aplica en el lugar que dice su **Dónde se aplica**. Una regla gana sobre el estilo neutro y
 > sobre lo que diga la skill; lo que la persona pida en el momento gana sobre una regla, y
-> entonces la regla se actualiza.
+> entonces la regla se actualiza. Una regla no repite ni contradice una preferencia: si lo que
+> pidió cabe en las opciones de `preferencias.md` (un tamaño, un volumen, una velocidad), se
+> cambia la preferencia y no se escribe regla. Nunca quedan dos valores para lo mismo.
 >
 > Una regla nace cuando la persona corrige algo de un video y la corrección es **para
 > siempre**, no solo para ese video. El procedimiento completo está en `/nuevo-video`,

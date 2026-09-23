@@ -7,7 +7,7 @@
  * en CUES, en datos.ts, sincronizados con su gráfico.
  */
 import { cuadrosDeTipeo, ticksDeContador } from "./anim";
-import { CUES } from "./datos";
+import { CUES, EFECTOS } from "./datos";
 import { BLOQUES_F, CTA_F, DURACION, f } from "./tiempos";
 import type { ClaveEfecto } from "./tipos";
 
@@ -39,7 +39,16 @@ export function cuesAutomaticos(): CueEnCuadros[] {
   return cues;
 }
 
+/** Con "pocos", de los automáticos quedan solo los de los cambios de plano; con "ninguno", nada. */
+const CAMBIOS_DE_PLANO: ClaveEfecto[] = ["whooshIn", "whooshOut"];
+const automaticos = () =>
+  EFECTOS === "ninguno"
+    ? []
+    : EFECTOS === "pocos"
+      ? cuesAutomaticos().filter((c) => CAMBIOS_DE_PLANO.includes(c.clave))
+      : cuesAutomaticos();
+
 export const TODOS_LOS_CUES: CueEnCuadros[] = [
-  ...cuesAutomaticos(),
-  ...CUES.map((c) => ({ clave: c.clave, cuadro: f(c.en), vol: c.vol, dura: c.dura === undefined ? undefined : f(c.dura) })),
+  ...automaticos(),
+  ...(EFECTOS === "ninguno" ? [] : CUES).map((c) => ({ clave: c.clave, cuadro: f(c.en), vol: c.vol, dura: c.dura === undefined ? undefined : f(c.dura) })),
 ].filter((c) => c.cuadro >= 0 && c.cuadro < DURACION);

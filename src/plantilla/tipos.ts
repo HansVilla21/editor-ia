@@ -104,6 +104,9 @@ export type Encuadre = {
   cx?: number;
 };
 
+/** Cuántos efectos suenan en el video ("Efectos de sonido" en memory/preferencias.md). */
+export type NivelEfectos = "ninguno" | "pocos" | "normales" | "muchos";
+
 /** Un efecto de sonido: su pico cae en el segundo `en`. */
 export type Cue = {
   clave: ClaveEfecto;

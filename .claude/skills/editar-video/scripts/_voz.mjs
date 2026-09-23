@@ -137,8 +137,11 @@ export function juntarPalabras(tokens, { corrimiento = 0 } = {}) {
     }
   }
   if (actual) palabras.push(actual);
-  return palabras.filter((p) => p.texto);
+  // Whisper marca lo que no es habla entre corchetes o paréntesis ([MÚSICA], (risas)): no se dijo.
+  return palabras.filter((p) => p.texto && !MARCA_NO_DICHA.test(p.texto));
 }
+
+const MARCA_NO_DICHA = /^[\[(][^\])]*[\])][.,;:]?$/;
 
 /** Imprime las palabras con su segundo, cortando por puntuación, para poder leerlas. */
 export function imprimirPalabras(palabras, prefijo = "") {

@@ -77,10 +77,14 @@ después de apretar y antes de transcribir.
 **Elegido (tamaño):** (sin preguntar)
 **Por defecto:** de a 2 o 3 palabras, sincronizados con la voz, tamaño mediano (58 px).
 **Opciones:** modo: de a 2 o 3 palabras · solo las palabras clave · sin subtítulos. Tamaño:
-chico (52 px) · mediano (58 px) · grande (66 px)
+chico (52 px) · mediano (58 px) · grande (66 px) · muy grande (76 px) · o un número exacto en px
+(si pide "más grande todavía", se sube un escalón y se anota el número acá, no en `reglas.md`)
 **Dónde se aplica:**
 - El modo, en `PALABRAS` de `src/<slug>/datos.ts`: sin subtítulos, `[]`; solo palabras clave,
-  las entradas de `palabras.json` filtradas a esas palabras.
+  las entradas de `palabras.json` filtradas a esas palabras. Palabras clave son las que se leen
+  solas y dicen algo: nombres (de herramientas, marcas, personas), números y el sustantivo o
+  verbo central de la frase; una o dos por frase, y nunca dos que juntas no signifiquen nada
+  ("sistema diseño"): si quedan así, se deja solo la más fuerte.
 - El tamaño, en `subtitulos.tamano` de `src/<slug>/marca.ts`, en cada video, apenas se crea
   con `npm run nuevo`. Es la única línea de la copia fuera de `datos.ts` que se toca por una
   preferencia.
@@ -117,9 +121,10 @@ va en `nivelar.mjs <tramo> public/<slug>/musica.m4a <nivel>`. Sin música, no se
 **Elegido:** (sin preguntar)
 **Por defecto:** normales: los que pone la plantilla (cambios de plano, filas, contador,
 tecleo, cierre) y de 2 a 4 más en los momentos clave.
-**Opciones:** pocos (solo los de la plantilla) · normales · muchos (uno en cada gráfico que
-entra)
-**Dónde se aplica:** `CUES` en `src/<slug>/datos.ts`. El volumen de todos juntos es `bus` en
+**Opciones:** ninguno · pocos (solo un whoosh en los cambios de plano) · normales · muchos (uno
+en cada gráfico que entra)
+**Dónde se aplica:** `EFECTOS` en `src/<slug>/datos.ts` ("ninguno", "pocos", "normales" o
+"muchos") y los extra en `CUES` (con "ninguno" y "pocos", `CUES` queda vacío). El volumen de todos juntos es `bus` en
 `.claude/skills/editar-video/referencias/efectos.json` (0,5).
 
 ## Portada

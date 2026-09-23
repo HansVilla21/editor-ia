@@ -40,7 +40,7 @@ de cada línea y que el resultado suene corrido.
    Estos son los límites reales, medidos sobre la onda.
 
 4. **Texto por tramo.**
-   `transcribir.mjs <crudo> <scratch>/tramos.json --tramos <scratch>/mapa.json` — una
+   `transcribir.mjs <crudo> <scratch>/texto-tramos.json --tramos <scratch>/mapa.json` — una
    llamada por tramo, con 0,3 s de silencio agregado a los lados para que no se coma la primera ni
    la última palabra.
 

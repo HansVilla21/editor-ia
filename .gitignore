@@ -29,3 +29,10 @@ Thumbs.db
 /memory/*
 !/memory/README.md
 !/memory/plantillas/
+
+# Lo de cada video (su composición, su transcripción y guia.png con la cara de la persona): viaja la plantilla
+/src/*/
+!/src/plantilla/
+!/src/entries/
+/src/entries/*
+!/src/entries/plantilla.tsx

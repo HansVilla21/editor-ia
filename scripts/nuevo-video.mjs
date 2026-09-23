@@ -145,7 +145,8 @@ ${filas.map(([ruta, que]) => `  ${ruta.padEnd(ancho)}${que}`).join("\n")}
 
 Qué sigue (el detalle de cada paso está en las fases de la skill editar-video; las
 herramientas están en ${s}/):
-  1. Corte:     montar.mjs (si la grabación es cruda) → cortar.mjs → apretar.mjs
+  1. Corte:     montar.mjs (si la grabación es cruda) → cortar.mjs → apretar.mjs (salvo que
+                "Silencios" pida respiraciones naturales)
                 → acelerar.mjs solo si la persona lo pidió. Todo a ${r.carpetaPublic}/video.mp4
   2. Palabras:  transcribir.mjs + palabras.mjs sobre ese video final → ${r.carpetaSrc}/palabras.json
                 cortes.mjs → la línea CORTES para datos.ts

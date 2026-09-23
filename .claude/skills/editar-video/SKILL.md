@@ -88,6 +88,9 @@ parpadeos, y deja 1,2 s de toma real después de la última palabra (`--cola`). 
 segunda pasada: saca las respiraciones y el aire muerto que el ruido de sala le esconde al corte,
 sin tocar las "s" finales, el primer 0,3 s ni los últimos 0,8 s.
 
+Si "Silencios" de `memory/preferencias.md` pide respiraciones naturales, `apretar.mjs` no se corre
+(y en `cortes.mjs` va sin `--quitados`): el corte deja las pausas cortas entre frases.
+
 **Verificación:**
 - En `tramos.json`, `descartados`: si hay una palabra ahí, bajar `--tramo-minimo`.
 - `cortar.mjs` lista las pausas internas de más de 0,35 s que quedaron y `apretar.mjs` imprime
@@ -164,7 +167,9 @@ se verifica antes de ponerlo en pantalla.
   `logo.mjs "<marca>"` busca primero en `public/logos/catalogo.json`, baja de Simple Icons y dice
   el slug para `datos.ts`. Si no la tiene, no se dibuja nada: se pide el archivo del kit de prensa
   y se registra con `logo.mjs "<marca>" --importar <archivo> --fuente <página>`; si no hay, la
-  marca va con texto.
+  marca va con texto. Antes de bajar, fijate dónde iría: una marca que solo se nombra en un bloque
+  full (cara a pantalla completa) no tiene lugar, porque nada va encima de la cara; ahí el logo va
+  en el split siguiente, en el titular o en la portada, y si no, no se baja.
 
 ### 5. Guion visual
 
@@ -243,8 +248,9 @@ renderizar con `--concurrency=3 --timeout=120000`: con los valores por defecto e
 ### 10. Portada
 
 Buscar el cuadro en toda la grabación, no solo en el video cortado: una boca a mitad de palabra
-arruina la portada. `cuadros.mjs <grabación> <scratch>/portada --cada 32 --hoja 5` (en un crudo 4K
-de 4 minutos tarda un par de minutos; cada etiqueta es el cuadro exacto de ese segundo), afinar de
+arruina la portada. primero una pasada gruesa, `cuadros.mjs <grabación> <scratch>/portada
+--cada 90 --hoja 8` (en un crudo 4K de 5 minutos, pocas hojas y un par de minutos; cada etiqueta
+es el cuadro exacto de ese segundo), después `--tiempos` alrededor de 2 o 3 candidatas, afinar de
 a ±0,1 s, preferir boca cerrada o sonrisa real con ojos abiertos, respetar "Portada" de las
 preferencias (mirada a cámara, composición distinta a la del video anterior) y ofrecer 2 o 3
 opciones. Mirar la

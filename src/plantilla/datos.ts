@@ -1,5 +1,6 @@
 /**
- * Los datos de este video. Es el ÚNICO archivo que se edita por video: el resto es el sistema.
+ * Los datos de este video. Es el archivo que se edita por video (más `subtitulos.tamano` en
+ * marca.ts, si lo pide "Subtítulos" en memory/preferencias.md): el resto es el sistema.
  *
  * Todos los tiempos van en segundos del video cortado (public/<DIR>/video.mp4). Se pasan a
  * cuadros con f = round(s · 30), el mismo redondeo que usan los subtítulos: así el cambio de
@@ -9,7 +10,7 @@
  * renderiza igual (sin video se ve un marcador, sin audio no suena). Se reemplazan todos.
  */
 import palabras from "./palabras.json";
-import type { Bloque, Cta, Cue, Encuadre, Palabra, Portada } from "./tipos";
+import type { Bloque, Cta, Cue, Encuadre, NivelEfectos, Palabra, Portada } from "./tipos";
 
 /** Carpeta de este video dentro de public/. La escribe nuevo-video.mjs: no se toca. */
 export const DIR = "plantilla";
@@ -130,6 +131,13 @@ export const CUES: Cue[] = [
   { clave: "bleep", en: 16.41 }, // "saca"
   { clave: "ok", en: 22.15 }, // "final"
 ];
+
+/**
+ * Cuántos efectos suenan, según "Efectos de sonido" en memory/preferencias.md:
+ * "ninguno" (ni los automáticos ni CUES), "pocos" (solo los de los cambios de plano, más lo
+ * que haya en CUES), "normales" o "muchos" (todos los automáticos más CUES).
+ */
+export const EFECTOS: NivelEfectos = "normales";
 
 /** Píldora oscura detrás del texto, para fondos claros o con ruido y ropa clara. */
 export const PILDORA = { titular: false, subtitulos: false };

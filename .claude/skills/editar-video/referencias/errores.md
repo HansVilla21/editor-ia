@@ -8,6 +8,7 @@ suma una fila acá (y, si salió de una corrección de la persona, también va a
 |---|---|
 | El render sale con contenido de otro video | Quedó una referencia a la plantilla en la copia. `npm run nuevo` avisa; si se copió a mano, buscar `plantilla` con grep en `src/<slug>/` |
 | Un cuadro con el subtítulo viejo justo en la costura | Bloques y subtítulos con distinto redondeo. Usar `f = round(s · 30)` en los dos |
+| Con subtítulos de palabras clave, la última palabra de un bloque aparece en el lugar del bloque siguiente | Un grupo se sostenía hasta un segundo después de su palabra y cruzaba el cambio de plano. La plantilla ya lo corta en la costura; si pasa en una copia vieja, actualizar `Subtitulos.tsx` desde la plantilla |
 | La portada sale con la cara del cuadro 0 | `<Freeze>` sobre el video dentro de un still devuelve el cuadro 0. Extraer el PNG con `cuadros.mjs` y montarlo como imagen |
 | Se ve un marcador con líneas en vez de la persona | Falta `public/<slug>/video.mp4`, o `DIR` no coincide con la carpeta. La plantilla no se rompe: muestra dónde caería la cara |
 | La captura de una página sale clara aunque se pidió modo oscuro | Muchos sitios ignoran `--force-dark-mode`. Usar la captura clara dentro de una tarjeta blanca |

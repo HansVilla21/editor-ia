@@ -46,7 +46,7 @@ Cada ajuste queda escrito en **un** lugar (más la historia en `memory/decisione
 - *Terminó mirando a otro lado, o en un gesto raro:* preguntale en una línea si prefiere cortar antes o cerrar con una pantalla final con el texto del cierre → "Final" en `memory/preferencias.md`.
 
 **4. Subtítulos**
-- *Se leen chicos:* subir a 66 px. *Se leen grandes:* bajar a 52 px (de fábrica, 58). Va en `subtitulos.tamano` de `src/<slug>/marca.ts` en cada video. → "Subtítulos", línea del tamaño, en `memory/preferencias.md`.
+- *Se leen chicos:* subir un escalón (58 → 66 → 76 px), o el número que pida. *Se leen grandes:* bajar un escalón (hasta 52 px; de fábrica, 58). Va en `subtitulos.tamano` de `src/<slug>/marca.ts` en cada video. → "Subtítulos", línea del tamaño, en `memory/preferencias.md`.
 - *Mucho texto de golpe:* modo "solo las palabras clave" → "Subtítulos", línea del modo, en `memory/preferencias.md`.
 - *No se leen sobre la ropa:* `PILDORA.subtitulos: true` en `datos.ts`. Es de esa grabación: no se escribe nada, salvo que diga que se viste siempre así (entonces, regla en `memory/reglas.md`, fase 7).
 
@@ -60,7 +60,7 @@ Cada ajuste queda escrito en **un** lugar (más la historia en `memory/decisione
 - *Sin música:* "Música" → no, en `memory/preferencias.md`.
 
 **7. Efectos de sonido**
-- *De más:* "Efectos" → pocos (`CUES` vacío en `datos.ts`), en `memory/preferencias.md`. Si lo que molesta es el volumen y no la cantidad: `bus` de 0,5 a 0,4 en `.claude/skills/editar-video/referencias/efectos.json`, con una nota en el renglón "Bus de efectos" de `.claude/skills/editar-video/referencias/sonido.md`: `— calibración del <fecha>: "<sus palabras>". Reemplazó a: 0,5`.
+- *De más:* "Efectos" → pocos (`EFECTOS: "pocos"` y `CUES` vacío en `datos.ts`); si dice "casi nada" o "ninguno", → ninguno (`EFECTOS: "ninguno"`). En `memory/preferencias.md`. Si lo que molesta es el volumen y no la cantidad: `bus` de 0,5 a 0,4 en `.claude/skills/editar-video/referencias/efectos.json`, con una nota en el renglón "Bus de efectos" de `.claude/skills/editar-video/referencias/sonido.md`: `— calibración del <fecha>: "<sus palabras>". Reemplazó a: 0,5`.
 - *Faltan:* "Efectos" → muchos (un efecto en cada gráfico que entra, en `CUES`), en `memory/preferencias.md`.
 
 **8. Portada**

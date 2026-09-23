@@ -45,8 +45,9 @@ export function leerCorrecciones(texto) {
       const textoBien = linea.slice(flecha + 2).trim();
       const mal = tokens(textoMal).map(normal);
       const bien = tokens(textoBien);
-      if (mal.length === 0 || bien.length === 0) {
-        errores.push({ numero, linea, motivo: "le falta un lado: va «mal => bien»" });
+      // Con el lado derecho vacío, la palabra se borra (un "eh", un [MÚSICA] que se coló).
+      if (mal.length === 0 || (bien.length === 0 && textoBien !== "")) {
+        errores.push({ numero, linea, motivo: "le falta el lado izquierdo: va «mal => bien» (o «mal =>» para borrar)" });
         return;
       }
       correcciones.push({ numero, textoMal, textoBien, mal, bien });
@@ -77,6 +78,7 @@ function conTiempos(texto, inicio, fin, conCuadros) {
  * tiempos. Otra cantidad: las nuevas se reparten el tramo de las viejas según su largo.
  */
 function reemplazar(viejas, bien) {
+  if (bien.length === 0) return [];
   if (viejas.length === bien.length) {
     return viejas.map((v, i) => {
       const { antes, despues } = partes(v.texto);
