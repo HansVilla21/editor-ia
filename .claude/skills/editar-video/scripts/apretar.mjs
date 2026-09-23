@@ -82,7 +82,7 @@ const duracion = info.duracion;
 const pausas = detectarPausas(await medirTramas(entrada), { hondo, borde, nucleo });
 // En la grilla de 30 fps: así lo que dice el mapa es exactamente lo que pierde el video, cuadro
 // por cuadro, y los CORTES que se corren con cortes.mjs caen en el salto real.
-const quitados = cuadricular(elegirQuitados(pausas, duracion, { minimo, tras, antes })).map(([a, b]) => [
+const quitados = cuadricular(elegirQuitados(pausas, duracion, { minimo, tras, antes }), { quitar: true }).map(([a, b]) => [
   Number(a.toFixed(4)),
   Number(b.toFixed(4)),
 ]);

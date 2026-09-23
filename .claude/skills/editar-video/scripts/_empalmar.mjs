@@ -27,16 +27,21 @@ export function leerTamano(texto) {
 export const encuadrar = ({ ancho, alto }) =>
   `scale=${ancho}:${alto}:force_original_aspect_ratio=increase,crop=${ancho}:${alto},setsar=1`;
 
-/** Un segundo llevado al cuadro de 30 fps más cercano. */
-export const alCuadro = (s) => Math.round(Number(s) * FPS) / FPS;
+/** Un segundo llevado al cuadro de 30 fps de abajo o de arriba. */
+export const cuadroAbajo = (s) => Math.floor(Number(s) * FPS + 1e-6) / FPS;
+export const cuadroArriba = (s) => Math.ceil(Number(s) * FPS - 1e-6) / FPS;
 
 /**
  * Los pedazos con sus bordes en la grilla de 30 fps, sin los que quedan vacíos.
  * Con los bordes sueltos, cada pedazo sale un cuadro más largo de lo que dice el mapa, y al final
  * del video los CORTES caen 3 o 4 cuadros antes que el salto de la imagen.
+ * Lo que se CONSERVA se agranda hasta el cuadro (nunca se come el aire de una palabra); lo que se
+ * QUITA (`quitar: true`, apretar.mjs) se achica hasta el cuadro, por la misma razón.
  */
-export const cuadricular = (pedazos) =>
-  pedazos.map(([a, b]) => [alCuadro(a), alCuadro(b)]).filter(([a, b]) => Math.round((b - a) * FPS) >= 1);
+export const cuadricular = (pedazos, { quitar = false } = {}) =>
+  pedazos
+    .map(([a, b]) => (quitar ? [cuadroArriba(a), cuadroAbajo(b)] : [cuadroAbajo(a), cuadroArriba(b)]))
+    .filter(([a, b]) => Math.round((b - a) * FPS) >= 1);
 
 /**
  * Los filtros de un pedazo: video a 30 fps con exactamente round((b − a) · 30) cuadros, y audio

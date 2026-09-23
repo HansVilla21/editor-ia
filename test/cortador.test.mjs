@@ -129,9 +129,14 @@ before(() => {
 });
 
 test("--aire X sigue andando: X antes de la frase y nunca menos de 0,14 s después", () => {
+  // Los bordes van a la grilla de 30 fps, siempre hacia afuera: nunca menos aire que el pedido,
+  // y a lo sumo un cuadro más.
   const [tramo] = segundo.mapa.tramos;
-  assert.ok(Math.abs(tramo.inicioOrigen - (SEGUNDO.primera[0] - 0.05)) < 0.01, `empieza en ${tramo.inicioOrigen}`);
-  assert.ok(Math.abs(tramo.finOrigen - (SEGUNDO.segunda[1] + 0.14)) < 0.01, `termina en ${tramo.finOrigen}`);
+  const inicioPedido = SEGUNDO.primera[0] - 0.05;
+  const finPedido = SEGUNDO.segunda[1] + 0.14;
+  const cuadro = 1 / 30;
+  assert.ok(tramo.inicioOrigen <= inicioPedido + 1e-3 && tramo.inicioOrigen > inicioPedido - cuadro - 1e-3, `empieza en ${tramo.inicioOrigen}`);
+  assert.ok(tramo.finOrigen >= finPedido - 1e-3 && tramo.finOrigen < finPedido + cuadro + 1e-3, `termina en ${tramo.finOrigen}`);
 });
 
 test("cortar con --tamano 1440x2560 sale a 1440x2560", () => {

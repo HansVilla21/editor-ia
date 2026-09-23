@@ -54,7 +54,7 @@ test("montar: con tiempos fuera de la grilla, el video tiene los cuadros que dic
   const inicios = largos.map((_, i) => largos.slice(0, i).reduce((s, n) => s + n, 0));
   assert.deepEqual(filas.map((f) => f.cuadro), inicios);
   assert.equal(total, largos.reduce((s, n) => s + n, 0), "el video tiene los cuadros que suma el mapa");
-  assert.ok(Math.abs(total - 90) <= 3, "tres tomas de ~1 s dan unos 90 cuadros");
+  assert.ok(total >= 90 && total <= 90 + 2 * filas.length, "cada toma crece a lo sumo un cuadro por lado");
   assert.ok(Math.abs(duracionAudio(salida) - total / 30) < 0.03, "el audio dura lo mismo que el video");
 });
 

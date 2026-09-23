@@ -17,7 +17,7 @@ import {
   sondear,
   asegurarCarpeta,
 } from "./_comun.mjs";
-import { leerTamano, alCuadro, filtrosDePedazo } from "./_empalmar.mjs";
+import { leerTamano, cuadroAbajo, cuadroArriba, filtrosDePedazo } from "./_empalmar.mjs";
 
 const AYUDA = `
 montar.mjs — pega las tomas elegidas del crudo en un video de 1080x1920 a 30 fps
@@ -64,7 +64,7 @@ const tomas = edl.map((p, i) => {
   }
   // Los bordes van a la grilla de 30 fps: así cada toma tiene exactamente los cuadros que dice
   // el mapa, y las costuras caen en el cuadro que después usan los CORTES.
-  const [a, b] = [alCuadro(desde), alCuadro(hasta)];
+  const [a, b] = [cuadroAbajo(desde), cuadroArriba(hasta)];
   if (Math.round((b - a) * 30) < 1) morir(`La toma ${i + 1} de la EDL dura menos de un cuadro.`);
   return { desde: a, hasta: b, nota: p.nota ?? "" };
 });
