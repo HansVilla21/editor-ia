@@ -18,11 +18,13 @@ import {
   sondear,
   asegurarCarpeta,
 } from "./_comun.mjs";
+import { leerTamano, encuadrar } from "./_empalmar.mjs";
 
 const AYUDA = `
 montar.mjs — pega las tomas elegidas del crudo en un video de 1080x1920 a 30 fps
 
-  node .claude/skills/editar-video/scripts/montar.mjs <crudo> <edl.json> <salida.mp4> <montaje.json>
+  node .claude/skills/editar-video/scripts/montar.mjs <crudo> <edl.json> <salida.mp4> <montaje.json> \\
+       [--tamano 1080x1920]
 
 Recibe: el crudo y una EDL con los segundos del crudo que se quedan, en orden final.
 
@@ -32,14 +34,19 @@ Recibe: el crudo y una EDL con los segundos del crudo que se quedan, en orden fi
 Devuelve: <salida.mp4> con las tomas pegadas, y <montaje.json> con dónde cayó cada una
           en el video montado, en segundos y en cuadros.
 
+  --tamano   ANCHOxALTO de la salida. Con un crudo en 4K, 1440x2560 deja margen para que los
+             acercamientos del zoom sigan nítidos. Si montás así, pasale el mismo --tamano a
+             cortar.mjs: si no, el corte lo vuelve a bajar a 1080x1920.
+
 Después de montar hay que cortar las pausas sobre el montaje, no sobre el crudo:
   cortar.mjs <salida.mp4> <salida.mp4> tramos.json --umbral -33 --minimo 0.24 --aire 0.10
 `;
 
 ayuda(process.argv, AYUDA);
-const { libres } = leerArgumentos(process.argv.slice(2));
+const { libres, opciones } = leerArgumentos(process.argv.slice(2));
 const [crudo, edlJson, salida, montajeJson] = libres;
 if (!crudo || !edlJson || !salida || !montajeJson) morir("Faltan argumentos. Probá con --ayuda.");
+const tamano = leerTamano(opciones.tamano);
 
 let edl;
 try {
@@ -78,8 +85,7 @@ tomas.forEach(({ desde, hasta }, i) => {
   const fundido = Math.min(0.012, duracion / 4);
   entradas.push("-ss", String(desde), "-t", String(duracion.toFixed(4)), "-i", crudo);
   partes.push(
-    `[${i}:v]fps=30,scale=1080:1920:force_original_aspect_ratio=increase,` +
-      `crop=1080:1920,setsar=1,setpts=PTS-STARTPTS[v${i}]`,
+    `[${i}:v]fps=30,${encuadrar(tamano)},setpts=PTS-STARTPTS[v${i}]`,
   );
   partes.push(
     `[${i}:a]aresample=48000,asetpts=PTS-STARTPTS,` +
