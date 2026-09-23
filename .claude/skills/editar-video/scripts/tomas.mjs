@@ -11,7 +11,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { ayuda, leerArgumentos, morir, escribirJson, corta, fijo, sondear } from "./_comun.mjs";
 import { subirArchivo, borrarArchivo, preguntar, mimeDe, clave } from "./_gemini.mjs";
 import { prepararMp3 } from "./_voz.mjs";
-import { avisosFueraDeGuion } from "./_tomas.mjs";
+import { avisosFueraDeGuion, instruccionDeTomas, marcasDelIntento } from "./_tomas.mjs";
 
 const AYUDA = `
 tomas.mjs — lista cada intento de cada línea del guion en una grabación cruda
@@ -20,8 +20,12 @@ tomas.mjs — lista cada intento de cada línea del guion en una grabación crud
 
 Recibe: la grabación cruda (audio o video; si es video le saca el audio solo) y el guion con
         una frase por línea.
-Devuelve: <tomas.json> con cada intento —qué líneas cubre, si está completo, si es fluido, qué
-          falló y qué se dijo—, los tramos fuera de guion, y una recomendación por línea.
+Devuelve: <tomas.json> con cada intento —qué líneas cubre, si está completo, si es fluido, si
+          hizo pausas, qué falló y qué se dijo—, los tramos fuera de guion, y una recomendación
+          por línea.
+
+  TRABADO     se trabó: repitió una palabra, se corrigió a mitad o dejó la frase cortada.
+  con pausas  solo hizo silencios largos. La toma sirve igual: el corte de silencios los saca.
 
 Los tiempos son aproximados. El flujo completo está en referencias/tomas.md:
   1. sondear.mjs      qué es el archivo
@@ -53,30 +57,7 @@ if (!info.audio) morir("La grabación no tiene audio.");
 // Siempre se sube un mp3 liviano: subir el video entero tarda muchísimo y no aporta nada.
 const audio = await prepararMp3(grabacion);
 
-const instruccion = [
-  "Esta es la grabación CRUDA de una persona leyendo un guion para un video corto, en español.",
-  "Cuando se equivoca, se detiene y repite la frase; a veces repite varias veces. También hay",
-  "silencios, muletillas y comentarios fuera de guion.",
-  "",
-  "GUION (una línea por frase):",
-  ...lineas.map((l, i) => `${i + 1}. ${l}`),
-  "",
-  `La grabación dura ${fijo(info.duracion)} segundos. Escuchá TODO el audio con cuidado.`,
-  "Para CADA intento de decir cada línea del guion, aunque sea parcial, devolvé una entrada.",
-  "Tiempos en segundos con 0,1 de precisión: inicio es la primera sílaba, fin la última.",
-  "",
-  "  completo   dijo la línea entera (variaciones menores de palabras están bien)",
-  "  fluido     sin trabarse, sin corregirse a mitad, sin alargar sílabas raro, sin cortar la última palabra",
-  "  problema   qué falló, si no sirve",
-  "  texto      lo que dijo, literal",
-  "  lineas     si un intento cubre varias líneas seguidas, van todas",
-  "",
-  "Devolvé SOLO JSON:",
-  '{"intentos":[{"lineas":[1],"inicio":0,"fin":0,"completo":true,"fluido":true,"problema":"","texto":""}],',
-  ' "fueraDeGuion":[{"inicio":0,"fin":0,"texto":""}],',
-  ' "recomendacion":[{"linea":1,"inicio":0,"motivo":""}]}',
-  "En recomendacion elegí para cada línea el MEJOR intento: normalmente el último completo y fluido.",
-].join("\n");
+const instruccion = instruccionDeTomas(lineas, info.duracion);
 
 console.log(`Subiendo ${fijo(info.duracion)} s de audio a Gemini…`);
 let archivo;
@@ -93,10 +74,9 @@ try {
 
   const intentos = datos?.intentos ?? [];
   for (const intento of intentos) {
-    const marcas = [intento.completo ? "completo" : "PARCIAL", intento.fluido ? "fluido" : "TRABADO"];
     console.log(
       `${fijo(Number(intento.inicio) || 0).padStart(7)} - ${fijo(Number(intento.fin) || 0).padStart(7)}  ` +
-        `línea ${String((intento.lineas ?? []).join(",")).padEnd(6)} ${marcas.join(" ").padEnd(18)} ${intento.texto ?? ""}`,
+        `línea ${String((intento.lineas ?? []).join(",")).padEnd(6)} ${marcasDelIntento(intento).padEnd(28)} ${intento.texto ?? ""}`,
     );
     if (intento.problema) console.log(`${" ".repeat(19)}problema: ${intento.problema}`);
   }
