@@ -6,13 +6,14 @@
   "description": "Un proyecto de Claude Code que edita videos verticales cortos y aprende tu estilo",
   "license": "MIT",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.12"
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs",
+    "test": "node --test",
     "studio": "remotion studio src/index.ts",
     "render": "remotion render src/index.ts Prueba out/prueba.mp4",
     "doctor": "node scripts/doctor.mjs",
+    "whisper": "node scripts/whisper.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

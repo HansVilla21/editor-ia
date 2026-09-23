@@ -16,6 +16,7 @@ import {
   fijo,
   cuadroDe,
   sondear,
+  asegurarCarpeta,
 } from "./_comun.mjs";
 
 const AYUDA = `
@@ -94,6 +95,7 @@ writeFileSync(
   "utf8",
 );
 
+asegurarCarpeta(salida);
 await ffmpeg([
   "-v", "error", "-y",
   ...entradas,

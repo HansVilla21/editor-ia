@@ -9,12 +9,17 @@ out/
 # Estado local de cada usuario
 estado.json
 
-# Los efectos se bajan de Mixkit, no viajan en el repo
-public/sfx/
+# Whisper: el programa y el modelo se bajan con npm run whisper, no viajan en el repo
+/.whisper/
 
-# Material de cada usuario: sus videos y sus referencias
-videos/
-referencias/
+# Lo de cada video (public/<slug>/) y los efectos, que se bajan de Mixkit
+/public/*/
+
+# Material de cada usuario: sus videos y sus referencias.
+# Con la barra adelante: sin ella, también se ignoraba la carpeta del estilo neutro
+# (.claude/skills/editar-video/referencias/), y el estilo nunca llegó al repo.
+/videos/
+/referencias/
 
 CLAUDE.local.md
 .DS_Store

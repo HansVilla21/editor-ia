@@ -38,16 +38,22 @@ Vertical, 1080×1920, a 30 fps. Es lo que piden Instagram, TikTok y YouTube Shor
 | `referencias/` | Los videos de referencia del usuario y sus informes |
 | `videos/` | Las entregas |
 | `memory/` | Decisiones tomadas y por qué |
+| `.whisper/` | Whisper y su modelo. Se baja con `npm run whisper` y no viaja en el repo |
 
 ## Qué correr sin preguntar
 
 `npm run doctor`, `npm test`, `npm run render`, `npm run studio`, `npx tsc --noEmit`, y
 lecturas de git.
 
+ffmpeg y ffprobe vienen en `node_modules` y **no están en el PATH**: nunca escribas un
+comando `ffmpeg …` suelto. Las herramientas de `.claude/skills/editar-video/scripts/`
+reciben los videos tal cual y usan el ffmpeg del proyecto.
+
 ## Qué requiere confirmación
 
-Instalar dependencias nuevas · borrar o sobrescribir videos del usuario · publicar
-cualquier cosa · usar servicios pagos.
+Instalar dependencias nuevas · bajar Whisper la primera vez (`npm run whisper`, unos
+490 MB) · borrar o sobrescribir videos del usuario · publicar cualquier cosa · usar
+servicios pagos.
 
 ## Reglas que no se negocian
 

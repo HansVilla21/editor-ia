@@ -22,6 +22,7 @@ import {
   cuadroDe,
   mismoArchivo,
   vecinoTemporal,
+  asegurarCarpeta,
 } from "./_comun.mjs";
 
 const AYUDA = `
@@ -106,6 +107,7 @@ writeFileSync(archivoGrafo, grafo, "utf8");
 
 const enElLugar = mismoArchivo(entrada, salidaPedida);
 const salida = enElLugar ? vecinoTemporal(salidaPedida) : salidaPedida;
+asegurarCarpeta(salida);
 
 await ffmpeg([
   "-v", "error", "-y",
