@@ -234,12 +234,17 @@ function evaluarFraccion(texto) {
   return Number((a / b).toFixed(6));
 }
 
-/** Decodifica cualquier archivo a mono f32 y devuelve las muestras. */
-export async function leerPcm(ruta, muestreo = 48000, { desde = null, hasta = null } = {}) {
+/**
+ * Decodifica cualquier archivo a mono f32 y devuelve las muestras.
+ * Con `filtro` (una cadena de filtros de audio de ffmpeg) se lee solo una banda.
+ */
+export async function leerPcm(ruta, muestreo = 48000, { desde = null, hasta = null, filtro = null } = {}) {
   const args = ["-v", "error"];
   if (desde !== null) args.push("-ss", String(desde));
   if (hasta !== null) args.push("-to", String(hasta));
-  args.push("-i", ruta, "-vn", "-ac", "1", "-ar", String(muestreo), "-f", "f32le", "-");
+  args.push("-i", ruta, "-vn", "-ac", "1", "-ar", String(muestreo));
+  if (filtro) args.push("-af", filtro);
+  args.push("-f", "f32le", "-");
   const r = await correr(FFMPEG, args);
   if (r.codigo !== 0) morir(`No pude leer el audio de ${corta(ruta)}:\n${ultimasLineas(r.error, 6)}`);
   const bytes = r.salida.length - (r.salida.length % 4);

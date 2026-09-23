@@ -17,6 +17,7 @@ import {
   cuadroDe,
   escribirJson,
 } from "./_comun.mjs";
+import { leerCanales } from "./efecto.mjs";
 
 const AYUDA = `
 mezcla.mjs — mide cuánto suenan la música y los efectos debajo de la voz
@@ -26,7 +27,8 @@ mezcla.mjs — mide cuánto suenan la música y los efectos debajo de la voz
 
 Recibe: el render de Remotion SIN normalizar (versiones/vN-….mp4), la misma voz que se usó
         en la mezcla, y los segundos de cada acento fuerte que se quiera revisar de cerca.
-Devuelve: el nivel de la voz y el de música+efectos, en general y en cada segundo pedido.
+Devuelve: el nivel de la voz y el de música+efectos, en general y en cada segundo pedido, y el
+          pico de la mezcla: el del canal más fuerte, el mismo que da volumedetect.
 
 Sano:
   música y efectos entre 12 y 20 dB por debajo de la voz
@@ -44,6 +46,11 @@ if (!render || !vozRuta) morir("Faltan argumentos: <render> <voz.wav>. Probá co
 
 const muestreo = 48000;
 const mezclaCruda = await leerPcm(render, muestreo);
+// El pico sale de cada canal por separado: la mezcla mono de ffmpeg suma L y R a 0,707 cada uno,
+// y con los dos canales en fase inventa hasta 3 dB que el archivo no tiene.
+const canales = await leerCanales(render, { muestreo });
+const picoCanales = (a = 0, b = Infinity) =>
+  Math.max(...canales.map((c) => aDb(pico(c, Math.min(a, c.length), Math.min(b, c.length)))));
 const vozCruda = await leerPcm(vozRuta, muestreo);
 if (mezclaCruda.length === 0 || vozCruda.length === 0) morir("Alguno de los dos archivos no tiene audio.");
 
@@ -106,9 +113,16 @@ for (let i = 0; i < largo; i++) vozEscalada[i] = ganancia * voz[i];
 const vozDb = aDb(rms(vozEscalada));
 const restoDb = aDb(rms(resto));
 
-console.log(`desfase ${desfase} muestras (${fijo((1000 * desfase) / muestreo, 1)} ms), la voz entra a ${fijo(ganancia, 3)} de su nivel`);
+const desfaseMs = (1000 * desfase) / muestreo;
+console.log(
+  `desfase ${desfase} muestras (${fijo(desfaseMs, 1)} ms), la voz entra a ${fijo(ganancia, 3)} de su nivel` +
+    (Math.abs(desfaseMs) <= 100
+      ? "  (normal: es el retardo del códec AAC, y ya se compensó)"
+      : "  AVISO: más de 100 ms. ¿Es la voz de este render? Si la voz no está alineada, la medición no sirve"),
+);
+const picoMezcla = picoCanales();
 console.log("");
-console.log(`general   voz ${fijo(vozDb, 1)} dB   música+efectos ${fijo(restoDb, 1)} dB   diferencia ${fijo(vozDb - restoDb, 1)} dB   pico de la mezcla ${fijo(aDb(pico(mezcla)), 1)} dB`);
+console.log(`general   voz ${fijo(vozDb, 1)} dB   música+efectos ${fijo(restoDb, 1)} dB   diferencia ${fijo(vozDb - restoDb, 1)} dB   pico de la mezcla (canal más fuerte) ${fijo(picoMezcla, 1)} dB`);
 
 const filas = [];
 for (const crudo of acentos) {
@@ -123,7 +137,7 @@ for (const crudo of acentos) {
     voz: Number(aDb(rms(vozEscalada, a, b)).toFixed(1)),
     efectos: Number(aDb(rms(resto, a, b)).toFixed(1)),
     picoEfectos: Number(aDb(pico(resto, a, b)).toFixed(1)),
-    picoMezcla: Number(aDb(pico(mezcla, a, b)).toFixed(1)),
+    picoMezcla: Number(picoCanales(inicio + a, inicio + b).toFixed(1)),
   };
   filas.push(fila);
   console.log(`t=${fijo(t).padStart(6)} s (cuadro ${String(fila.cuadro).padStart(5)})  voz ${fijo(fila.voz, 1).padStart(6)} dB   música+efectos ${fijo(fila.efectos, 1).padStart(6)} dB   pico ${fijo(fila.picoEfectos, 1).padStart(6)} dB   diferencia ${fijo(fila.voz - fila.efectos, 1).padStart(5)} dB`);
@@ -150,6 +164,7 @@ if (opciones.json) {
     vozDb: Number(vozDb.toFixed(1)),
     restoDb: Number(restoDb.toFixed(1)),
     diferencia: Number(diferencia.toFixed(1)),
+    picoMezcla: Number(picoMezcla.toFixed(1)),
     acentos: filas,
   });
   console.log(`medición en ${corta(opciones.json)}`);

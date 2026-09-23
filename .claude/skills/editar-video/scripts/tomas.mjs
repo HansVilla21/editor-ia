@@ -11,6 +11,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { ayuda, leerArgumentos, morir, escribirJson, corta, fijo, sondear } from "./_comun.mjs";
 import { subirArchivo, borrarArchivo, preguntar, mimeDe, clave } from "./_gemini.mjs";
 import { prepararMp3 } from "./_voz.mjs";
+import { avisosFueraDeGuion } from "./_tomas.mjs";
 
 const AYUDA = `
 tomas.mjs — lista cada intento de cada línea del guion en una grabación cruda
@@ -115,6 +116,14 @@ try {
   if (sinCubrir.length) {
     console.log("");
     console.log(`aviso  Estas líneas no aparecen en ningún intento: ${sinCubrir.join(", ")}`);
+    console.log("       Preguntale a la persona si van igual (hay que grabarlas) o se sacan del guion.");
+  }
+
+  const fuera = avisosFueraDeGuion(datos);
+  if (fuera.length) {
+    console.log("");
+    console.log("aviso  Se dijo esto y no está en el guion. Preguntale si va en el video o se saca:");
+    for (const linea of fuera) console.log(linea);
   }
 
   console.log("");

@@ -3,6 +3,9 @@
  *
  * No hay SDK: el proyecto no suma dependencias. La clave se lee de GEMINI_API_KEY
  * —del entorno o del archivo .env— y viaja en el encabezado, nunca en la URL ni en pantalla.
+ *
+ * El modelo se puede fijar con GEMINI_MODEL (en el entorno o en .env): va primero, y los de
+ * MODELOS quedan de respaldo en ese orden.
  */
 import { readFileSync, statSync } from "node:fs";
 import { basename, extname } from "node:path";
@@ -10,7 +13,24 @@ import { basename, extname } from "node:path";
 import { morir } from "./_comun.mjs";
 
 const BASE = "https://generativelanguage.googleapis.com";
-export const MODELOS = ["gemini-2.5-pro", "gemini-2.5-flash"];
+export const MODELOS = ["gemini-pro-latest", "gemini-2.5-pro", "gemini-2.5-flash"];
+
+/** GEMINI_MODEL primero si está puesto, después MODELOS, sin repetir. */
+export function ordenDeModelos(entorno = process.env) {
+  const propio = String(entorno.GEMINI_MODEL ?? "").trim();
+  return propio ? [propio, ...MODELOS.filter((m) => m !== propio)] : [...MODELOS];
+}
+
+const esFlash = (modelo) => /flash/i.test(modelo);
+
+/** Flash contesta, pero mide y transcribe peor: si se llegó a él de respaldo, que se vea. */
+function avisarRespaldo(usado, orden) {
+  if (!esFlash(usado) || usado === orden[0]) return;
+  console.log("");
+  console.log(`AVISO  Contestó ${usado}, un modelo Flash de respaldo: ${orden[0]} no respondió.`);
+  console.log("       Flash es menos preciso. Revisar el resultado con más cuidado, o repetir más tarde.");
+  console.log("");
+}
 
 const AYUDA_CLAVE = [
   "Falta la clave de Gemini.",
@@ -140,14 +160,16 @@ export async function borrarArchivo(archivo) {
  * Una consulta con las partes ya armadas. Si `json` es true pide la respuesta en JSON
  * y la devuelve parseada. Prueba los modelos en orden hasta que uno conteste.
  */
-export async function preguntar({ partes, json = true, modelos = MODELOS }) {
+export async function preguntar({ partes, json = true, modelos }) {
+  clave(); // Carga .env si hace falta: GEMINI_MODEL también puede venir de ahí.
+  const orden = modelos ?? ordenDeModelos();
   const cuerpo = {
     contents: [{ role: "user", parts: partes }],
     generationConfig: json ? { responseMimeType: "application/json" } : {},
   };
 
   let ultimo;
-  for (const modelo of modelos) {
+  for (const modelo of orden) {
     try {
       const resp = await pedir(`${BASE}/v1beta/models/${modelo}:generateContent`, {
         method: "POST",
@@ -160,7 +182,9 @@ export async function preguntar({ partes, json = true, modelos = MODELOS }) {
         .join("")
         .trim();
       if (!texto) throw new Error("Gemini devolvió una respuesta vacía.");
-      return { modelo, texto, datos: json ? recortarJson(texto) : null };
+      const resultado = { modelo, texto, datos: json ? recortarJson(texto) : null };
+      avisarRespaldo(modelo, orden);
+      return resultado;
     } catch (e) {
       ultimo = e;
       console.log(`  ${modelo}: ${String(e.message).slice(0, 160)}`);

@@ -9,8 +9,8 @@
 > palabra, una idea por gráfico, y verificar con cuadros.
 
 Colores y tipografías salen de la skill `mi-marca`. Mientras esté vacía rigen los valores neutros de
-este archivo. Plantilla viva: `src/plantilla/`. Se copia a `src/<slug>/` y se cambian los datos, no
-el sistema.
+este archivo. Plantilla viva: `src/plantilla/`. Se copia a `src/<slug>/` con `npm run nuevo <slug>` y
+se cambian los datos, no el sistema (ver "La plantilla", al final).
 
 Formato: 1080×1920 a 30 fps. Redondeo compartido: `f = round(segundos · 30)`.
 
@@ -91,12 +91,16 @@ Colores neutros. El acento sale de `mi-marca`; mientras esté vacía, `#5B8DEF`.
 
 - Fondo: `radial-gradient(120% 70% at 50% 0%, #161A22, #0B0F16 60%)`, con una barra de 4 px del
   color de acento arriba, que tapa la costura con el video.
-- Cabecera, en coordenadas del panel, y = 64: etiqueta de tipo y posición (`SKILL 03 / 05`) en
+- Cabecera, en coordenadas del panel, y = 64: etiqueta de tipo y posición (`PASO 1 / 3`) en
   monoespaciada de 26 px con el acento, tags a la derecha, título de 84 px peso 800
   `letter-spacing -0.035em`, y la fuente en monoespaciada de 28 px. Entra con blur-in escalonado:
   +0, +2 y +4 cuadros.
 - Cuerpo: desde y = 290 hasta y = 720 del panel (1680 absoluto). Más abajo queda la interfaz de la
   app: ahí no va nada importante.
+- **Nada del cuerpo sube por encima de y = 290**, aunque sea para ganar lugar: una tarjeta corrida
+  para arriba tapa el título de la cabecera, y es de lo primero que se nota.
+- **Lo que va en una fila tiene que entrar en esa fila.** Chips, tags o secciones que no entran se
+  achican o se sacan; si parten en dos renglones se salen de su tarjeta. Mirarlo en los cuadros.
 - Tarjetas `#141821`, borde `#272C36`, radio 12. Estados: ok `#3FBF87`, alerta `#E8B440`,
   error `#E5675F`.
 
@@ -163,11 +167,71 @@ Cada herramienta, marca o plataforma nombrada lleva **su logo real**. Nunca dibu
 - El cuadro elegido se extrae a PNG y se monta como imagen: congelar el video dentro de un still
   devuelve el cuadro 0.
 
+## La plantilla
+
+`src/plantilla/` es este estilo hecho código. No se edita para un video: `npm run nuevo <slug>` la
+copia a `src/<slug>/`, arma `src/entries/<slug>.tsx` con los ids `<Slug>` y `<Slug>Portada` (de
+`mi-video` sale `MiVideo`), y crea `public/<slug>/` y `videos/<fecha>-<slug>/versiones/`. Rechaza un
+slug que ya existe o que no es de minúsculas, números y guiones.
+
+En la copia se edita **solo `datos.ts`**. Todos los tiempos van en segundos del video cortado:
+
+| Dato | Qué es | De dónde sale |
+|---|---|---|
+| `DIR` | la carpeta del video en `public/` | la pone `npm run nuevo` |
+| `VIDEO_CUADROS` | cuadros de `video.mp4`. El reel dura eso y termina en toma real: sin congelar | `sondear.mjs` (duración × 30, hacia abajo) |
+| `TITULAR`, `ENFASIS` | el titular del gancho (1 o 2 líneas) y las palabras que van con el acento en el titular y la portada | el guion visual |
+| `BLOQUES` | `{desde, hasta, tipo: "full" \| "split", escena?}`, cada uno en la primera palabra de su frase | `palabras.json` |
+| `CORTES` | los jump cuts, en segundos | `tramos.json` (`inicioSalida`) |
+| `ENCUADRE` | `{cy, pelo, menton, cx?}` en píxeles de 1080×1920 | `encuadre.json`, verificado con `guia.png` |
+| `CUES` | efectos extra: `{clave, en, vol?, dura?}` con la clave del catálogo | `referencias/efectos.json` |
+| `CTA` | `{desde, pide, palabra, recibe}`: "Comentá / PALABRA / y te mando…" | lo que dice al cerrar |
+| `PILDORA` | fondo oscuro detrás del titular o de los subtítulos | fondo claro o ropa clara |
+| `PORTADA` | etiqueta, título, subtítulo e ítems | el guion visual |
+| `PALABRAS` | `palabras.json`, lo que dijo con los nombres bien escritos | `palabras.mjs` |
+
+Escenas del panel, solo en split (en full no se pone nada sobre la cara):
+
+- `tarjeta`: una captura de `public/<slug>/` en tarjeta clara, con el paneo de captura. Sin captura,
+  muestra los renglones de `texto` y avisa qué archivo falta.
+- `lista`: filas que entran con blurIn en su palabra (`en`), con estado opcional `ok`, `alerta` o
+  `error`. Hasta 4 a tamaño pleno; con más, se achican.
+- `contador`: una cifra verificada que cuenta de `desde` a `hasta`, con prefijo, sufijo y nota.
+- `comando`: texto tipeado y renglones de salida cuando termina.
+
+Todas llevan cabecera: `etiqueta` ("PASO 1 / 3"), `tags`, `titulo` (se achica solo si es largo) y
+`fuente`. Una escena nueva se agrega en `escenas/`, con su forma en `tipos.ts` y su caso en
+`EscenaDelBloque.tsx`.
+
+Lo que hace sola, para no reinventarlo en cada video:
+
+- Pega los bloques (cada uno termina donde empieza el siguiente) y estira el último hasta el final.
+- Transición solo donde cambia el tipo. Dos split seguidos son sub-escenas: corte seco.
+- Zoom alterno en cada corte, con origen en la cara, y el corrimiento del split, con las fórmulas de
+  "Encuadre de la cara".
+- El titular se ubica y se achica solo entre y = 240 y el pelo; el cierre, debajo del mentón y
+  arriba de y = 1680.
+- Subtítulos de 2 a 3 palabras (4 si la cuarta cierra la frase), que nunca cruzan un cambio de bloque.
+- Sonido: whooshIn, whooshOut y swish en los cortes, un click por fila, los ticks del contador, el
+  tecleo del comando y el impacto del cierre. `CUES` es para lo demás. Siempre con el pico en el
+  cuadro del evento.
+- Cada archivo se busca en `public/` antes de usarlo. Sin video, un marcador con las líneas del
+  encuadre; sin voz, suena el audio del video; sin música o sin un efecto, se omite. Un clon recién
+  bajado renderiza el ejemplo sin nada.
+- Avisa en la consola del render (`[revisión] …`): bloques cortos, split sin escena, titular que no
+  entra, cierre fuera de lugar, archivos que faltan.
+
+Archivos: `Reel.tsx` arma todo; `Toma.tsx`, `Transicion.ts`, `Panel.tsx` con `escenas/`,
+`Subtitulos.tsx`, `Titular.tsx`, `Cta.tsx`, `Sonido.tsx` con `cues.ts` y `Portada.tsx` son las
+piezas; `encuadre.ts` tiene las fórmulas y `tiempos.ts` el paso a cuadros. `marca.ts` tiene colores y
+tipografías: lo que diga `mi-marca` se carga una sola vez en `MI_MARCA`, y lo heredan los videos
+nuevos.
+
 ## Revisión con cuadros
 
 - Antes de renderizar: `previa.mjs src/entries/<slug>.tsx <Id> <carpeta> "f1,f2,…" --escala 0.35
   --hoja 5`, con un solo bundle para todos los cuadros. Mirar siempre: el cuadro 0, el gancho, la
   mitad de cada transición, cada sub-escena, el cierre y el último cuadro.
 - Después del render: `cuadros.mjs <render> <salida> --tiempos "<bordes de bloque>" --hoja 5`, para
-  verificar que el subtítulo y el layout cambian en el mismo cuadro, y que el congelado final es el
-  que se quería.
+  verificar que el subtítulo y el layout cambian en el mismo cuadro, y que el video termina en toma
+  real, después de la última palabra, sin congelar.
