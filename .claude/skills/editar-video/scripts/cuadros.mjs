@@ -44,6 +44,10 @@ Ejemplos de la skill:
   cuadros.mjs final.mp4 scratch/bordes --tiempos "2.4,5.1" --hoja 5  revisar las costuras
   cuadros.mjs grabacion.mp4 videos/x/foto.png --tiempos "12.4" --suelto   extraer la portada
 
+Cada etiqueta muestra el cuadro más cercano a ese segundo, exacto. No se decodifica el archivo
+entero: cada cuadro sale con su propia búsqueda, varios a la vez. Buscar la portada en un crudo
+4K de 4 minutos (--cada 32) tarda un par de minutos.
+
 Congelar el video dentro de un still de Remotion devuelve el cuadro 0: por eso la portada
 se extrae acá a PNG y se monta como imagen.
 `;
@@ -71,8 +75,7 @@ if (opciones.tiempos !== undefined) {
 } else {
   const paso = comoCuadros(opciones.cada, 90);
   if (!Number.isFinite(paso) || paso < 1) morir("--cada tiene que ser un número de cuadros mayor que 0.");
-  const pasoSegundos = segundosDe(paso);
-  for (let s = 0; s < info.duracion; s += pasoSegundos) momentos.push({ segundos: Number(s.toFixed(3)) });
+  for (let f = 0; segundosDe(f) < info.duracion; f += paso) momentos.push({ segundos: Number(segundosDe(f).toFixed(3)) });
 }
 
 momentos = momentos
@@ -85,14 +88,14 @@ if (opciones.suelto) {
   const unico = momentos.length === 1 && /\.(png|jpg|jpeg)$/i.test(salida);
   for (const m of momentos) {
     const destino = unico ? salida : `${salida}-f${cuadroDe(m.segundos)}.png`;
-    await extraerCuadro(video, m.segundos, destino);
+    await extraerCuadro(video, m.segundos, destino, { fps: info.video.fps });
     console.log(`${corta(destino)}  ${m.etiqueta}`);
   }
   console.log(`\n${momentos.length} cuadro(s) a tamaño completo (${info.video.anchoMostrado}x${info.video.altoMostrado}).`);
 } else {
   const porHoja = Math.max(1, Math.round(numero(opciones.hoja, 6)));
   const ancho = Math.max(80, Math.round(numero(opciones.ancho, 240)));
-  const hojas = await hojasDeContacto(video, momentos, salida, { porHoja, ancho });
+  const hojas = await hojasDeContacto(video, momentos, salida, { porHoja, ancho, fps: info.video.fps });
   if (hojas.length === 0) morir("No pude extraer ningún cuadro.");
   contarHojas(hojas);
   console.log("");
