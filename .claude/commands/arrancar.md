@@ -88,6 +88,7 @@ Una sola ronda de preguntas, todas juntas en un mensaje. Cada una trae entre par
 
 Con la respuesta:
 
+- Si `memory/preferencias.md` no existe todavía, corré `node scripts/memoria.mjs`: arma la memoria desde `memory/plantillas/` (normalmente ya lo hizo el aviso al abrir).
 - **Escribí `memory/preferencias.md`**, siguiendo las instrucciones de arriba de ese archivo: en cada sección que tocó una pregunta, reemplazá solo la línea **Elegido**, con la fecha. La pregunta 1 va en "Tu nombre y el de tu marca", la 2 en "Plataforma", la 3 en "Trato en los textos de pantalla", la 4 en "Silencios" y en "Velocidad", la 5 en "Subtítulos" (la línea del modo), la 6 en "Música" (la línea de sí o no, y el tipo) y la 7 en "Logos de otras marcas" (solo logos: no cuenta como permiso para bajar música). Lo que saltó o contestó con "no sé": `por defecto` y lo que dijo. Titular, efectos, portada y final quedan `(sin preguntar)`.
 - Si contestó con algo que no está entre las opciones, anotalo con sus palabras y, si no se puede hacer con el editor, decíselo en una línea y proponé lo más parecido.
 - Si pasó una captura de su marca, seguí `.claude/skills/mi-marca/SKILL.md` para llenarla. Si no, no insistas.

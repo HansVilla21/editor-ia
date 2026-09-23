@@ -39,14 +39,26 @@ para confirmar que todo funciona.
 
 ## Cómo se usa
 
+- **Tus preferencias:** en `/arrancar` te hace unas preguntas cortas (dónde publicás, ritmo,
+  subtítulos, música, logos). Todo tiene un valor por defecto: si no sabés, decí "lo que vos
+  digas". Quedan en `memory/preferencias.md` y las podés cambiar cuando quieras.
+- **Escribir el guion:** `/guion` con de qué va el video y, si tenés, uno a tres videos cuyo
+  gancho te guste. Te devuelve el guion listo para grabar, una frase por línea, con qué se ve
+  en cada momento y qué datos hay que confirmar. Lo único que te pregunta es qué recibe quien
+  comenta la palabra del cierre.
+- **Antes de grabar:** `/antes-de-grabar` te da consejos cortos para grabar de forma que el
+  editor saque lo mejor.
 - **Editar un video:** pasale la grabación y contale de qué trata ("editá este video,
   es sobre…"), o escribí `/nuevo-video`. Si la grabación tiene repeticiones, pasale también
   el guion: con eso elige la última toma buena de cada frase.
+- **Después del primer video:** `/calibrar` son ocho preguntas sobre cómo quedó; cada
+  respuesta ajusta algo concreto para el próximo.
 - **Enseñarle tu estilo:** `/estudiar` con 2 o 3 enlaces y qué te gusta de cada uno.
 - **Tu marca:** tus colores, tipografías y lo que nunca querés ver en un video van en
   `.claude/skills/mi-marca/SKILL.md`. Claude te ayuda a llenarlo.
 - **Corregir:** decile qué no te gustó con tus palabras. Cada video sale en una versión
-  nueva y las anteriores quedan guardadas.
+  nueva y las anteriores quedan guardadas. Si la corrección es para siempre, queda escrita en
+  `memory/` y el próximo video ya sale bien.
 
 ## Cómo le enseñás tu estilo
 

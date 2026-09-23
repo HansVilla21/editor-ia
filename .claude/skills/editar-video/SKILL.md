@@ -27,6 +27,10 @@ proyecto (`node .claude/skills/editar-video/scripts/cortar.mjs …`). Abajo se e
 `cortar.mjs …`. Cada uno explica lo que recibe con `--ayuda`. Reciben los videos tal cual: nunca
 hace falta `ffmpeg` suelto, que no está en el PATH de la persona.
 
+`<scratch>` es una carpeta de trabajo para lo intermedio (mapas, transcripciones, hojas de
+cuadros): `out/<slug>/`, que git ignora. Lo que se entrega va en `videos/`, y lo que usa la
+composición en `public/<slug>/`.
+
 ## Reglas duras
 
 - **Nunca tapar la cara ni correr a la persona hacia un lado.** Gráficos, íconos y animaciones van
@@ -38,13 +42,20 @@ hace falta `ffmpeg` suelto, que no está en el PATH de la persona.
 - Salida: `videos/<YYYY-MM-DD>-<slug>/`, con **solo** `video-final.mp4` y `portada.png` a la vista, y
   todas las versiones en `versiones/vN-<qué cambió>.mp4`. **Nunca borrar una versión.**
 - Nada se borra: lo que sobra se mueve a `descartes/` dentro de la carpeta del video y se avisa.
-- Pedir OK antes de: descargar de una fuente nueva (música, efectos, b-roll, logos), instalar algo
-  fuera del proyecto, usar una sesión iniciada del usuario, o publicar en cualquier lado.
+- Pedir OK antes de: descargar de una fuente nueva (música, efectos, b-roll), instalar algo fuera
+  del proyecto, usar una sesión iniciada del usuario, o publicar en cualquier lado. Los logos se
+  bajan según "Logos de otras marcas" en `memory/preferencias.md` (ver fase 4).
 - Archivos de código de más de 300 líneas se parten.
 
 ## Las fases (marcar cada una al terminarla)
 
 ### 1. Intake
+
+**Antes que nada, la memoria.** Leé enteros `memory/preferencias.md` y `memory/reglas.md`, y de
+`memory/decisiones.md` las secciones "Música" y "Umbrales de corte". Cada preferencia y cada regla
+dice en qué fase se aplica y con qué opción o archivo; una regla gana sobre lo que dice esta skill.
+Lo que diga `(sin preguntar)` usa su valor por defecto. Si esos archivos no están,
+`node scripts/memoria.mjs` los arma desde las plantillas.
 
 `sondear.mjs <grabación>` → fps, rotación, duración, resolución y espacio de color. Rotación −90
 significa que el archivo es vertical rotado; si el color no es bt709, hay que tonemapear.
@@ -55,7 +66,9 @@ a `src/<slug>/`, arma `src/entries/<slug>.tsx` con los ids `<Slug>` y `<Slug>Por
 `mi-video` sale `MiVideo`), y crea `public/<slug>/` y `videos/<YYYY-MM-DD>-<slug>/versiones/`. Si el
 slug ya existe no toca nada. Por video se edita `datos.ts`: qué es cada dato y de dónde sale está en
 `referencias/estilo-visual.md`, sección "La plantilla". Si el guion pide algo que la plantilla no
-tiene, la escena nueva va en `escenas/` y se avisa al entregar; el resto de la copia no se toca.
+tiene, la escena nueva va en `escenas/` y se avisa al entregar; el resto de la copia no se toca,
+salvo `subtitulos.tamano` en `src/<slug>/marca.ts` si "Subtítulos" de las preferencias pide otro
+tamaño.
 
 **Verificación:** el script avisa si en la copia quedó alguna referencia a la plantilla. Si quedara,
 el render no falla: renderiza el contenido de la plantilla, y eso se descubre tarde.
@@ -93,14 +106,20 @@ completo está en `referencias/tomas.md`. El orden es montar → cortar → apre
 pidió) → transcribir el archivo final. Sobre un montaje, `cortar.mjs` va con `--umbral -33 --minimo
 0.24` (tomas.md, paso 7): entre tomas queda ruido de sala. Si `tomas.mjs` avisa líneas del guion que
 no se grabaron o cosas dichas fuera del guion, **preguntale** qué hacer con cada una antes de armar
-la EDL: no se decide solo.
+la EDL: no se decide solo. `tomas.mjs` marca TRABADO solo cuando la persona se trabó; un intento
+con silencios largos sale como `fluido, con pausas` y sirve igual: el corte los saca.
+
+Si el guion salió de `/guion`, ya está en `videos/<fecha>-<slug>/guion.md`: usá ese mismo slug y esa
+fecha (`node scripts/nuevo-video.mjs <slug> --fecha <fecha>`) para que todo quede en la misma
+carpeta, y copiá las líneas del bloque `text` de la sección "Guion" a `<scratch>/guion.txt` para
+`tomas.mjs`. Los datos marcados "a confirmar" en ese archivo se revisan en la fase 4.
 
 ### 2c. Acelerar (opcional, solo si la persona lo pide)
 
 `acelerar.mjs public/<slug>/video.mp4 public/<slug>/video.mp4 1.1`
 
-La velocidad la decide quien graba: preguntale una vez y anotá la respuesta en `memory/`. Si no dice
-nada, no se acelera. La voz no cambia de tono y el video queda a 30 fps. Después de acelerar cambian
+La velocidad está en "Velocidad" de `memory/preferencias.md`; si dice `(sin preguntar)`, no se
+acelera. La voz no cambia de tono y el video queda a 30 fps. Después de acelerar cambian
 todos los tiempos: la fase 3 transcribe este archivo, nunca uno anterior.
 
 ### 3. Palabras con sus tiempos
@@ -122,7 +141,11 @@ lleva cada corte al cuadro donde la imagen salta de verdad. Los cortes de `apret
 
 Segunda opinión sobre los nombres propios y las palabras raras:
 `transcribir.mjs public/<slug>/video.mp4 <scratch>/gemini.json --motor gemini --nombres "Remotion, Whisper, …"`.
-Los subtítulos son lo que dijo, con los nombres propios bien escritos.
+Los subtítulos son lo que dijo, con los nombres propios bien escritos. Si la segunda opinión (o la
+persona) encuentra palabras mal escritas, no se edita el JSON a mano: se anotan en
+`<scratch>/correcciones.txt`, una por línea (`Codl => Code`, `volvió la día => devolvió la IA`), y
+se corre `corregir.mjs src/<slug>/palabras.json <scratch>/correcciones.txt`. Deja los tiempos donde
+estaban; lo que avisa que no encontró casi siempre es una tilde o una palabra de más.
 
 ### 4. Datos y capturas
 
@@ -135,6 +158,13 @@ se verifica antes de ponerlo en pantalla.
 - Si la cifra dicha no coincide con la real, se muestra una formulación verdadera compatible
   ("más de 280.000") y se avisa al entregar. Nunca se muestra en pantalla un número falso.
 - Secretos de ejemplo, siempre enmascarados: `sk_live_••••••••`.
+- **Logos:** cada marca que se nombra lleva su logo real, según "Logos de otras marcas" en
+  `memory/preferencias.md`: con permiso permanente se bajan; con "preguntar cada vez" (o sin
+  respuesta), una sola pregunta con todas las marcas del video juntas; con "nunca", ninguno.
+  `logo.mjs "<marca>"` busca primero en `public/logos/catalogo.json`, baja de Simple Icons y dice
+  el slug para `datos.ts`. Si no la tiene, no se dibuja nada: se pide el archivo del kit de prensa
+  y se registra con `logo.mjs "<marca>" --importar <archivo> --fuente <página>`; si no hay, la
+  marca va con texto.
 
 ### 5. Guion visual
 
@@ -148,7 +178,9 @@ Escenas del split: `tarjeta` (captura con paneo), `lista`, `contador` (cifra ver
 `comando`. Dos split seguidos son sub-escenas: corte seco, sin transición. El titular va en
 `TITULAR` (3 a 7 palabras, el número en `ENFASIS`) y el cierre en `CTA`. Los efectos de las
 transiciones, las filas, los contadores, el tipeo y el cierre los pone la plantilla; en `CUES` van
-solo los demás.
+solo los demás. El logo va en `logo` de la escena (cabecera), grande en una `tarjeta` sin captura
+(con `logoEn` en la palabra que nombra la marca), en `TITULAR_LOGO` si el gancho la nombra y en
+`PORTADA.logo`.
 
 ### 6. Encuadre (dónde está la cara)
 
@@ -178,7 +210,8 @@ Antes de renderizar el video entero:
 Cuadros que siempre se miran: el 0 (titular completo, entre y 240 y el pelo), la mitad de cada
 transición, cada escena con todas sus filas, el CTA (debajo del mentón y arriba de y 1680) y el
 último (toma real, sin congelar). Los avisos `[revisión]` del render (bloque corto, split sin
-escena, titular que no entra, archivo que falta) se resuelven antes del render final.
+escena, titular que no entra, archivo o logo que falta) salen una vez por render y se resuelven
+antes del render final.
 
 ### 8. Sonido
 
@@ -210,8 +243,11 @@ renderizar con `--concurrency=3 --timeout=120000`: con los valores por defecto e
 ### 10. Portada
 
 Buscar el cuadro en toda la grabación, no solo en el video cortado: una boca a mitad de palabra
-arruina la portada. `cuadros.mjs <grabación> <scratch>/portada --cada 32 --hoja 5`, afinar de a
-±0,1 s, preferir boca cerrada o sonrisa real con ojos abiertos, y ofrecer 2 o 3 opciones. Mirar la
+arruina la portada. `cuadros.mjs <grabación> <scratch>/portada --cada 32 --hoja 5` (en un crudo 4K
+de 4 minutos tarda un par de minutos; cada etiqueta es el cuadro exacto de ese segundo), afinar de
+a ±0,1 s, preferir boca cerrada o sonrisa real con ojos abiertos, respetar "Portada" de las
+preferencias (mirada a cámara, composición distinta a la del video anterior) y ofrecer 2 o 3
+opciones. Mirar la
 elegida a tamaño completo: en la hoja chica no se ve si los ojos están cerrados o miran a otro lado.
 
 El cuadro elegido se extrae con `cuadros.mjs <grabación> public/<slug>/portada.png --tiempos "<s>"
@@ -226,39 +262,21 @@ npx remotion still src/entries/<slug>.tsx <Id>Portada videos/<carpeta>/portada.p
 ### 11. Entrega
 
 Decir, en este orden: dónde quedó el archivo y cuánto dura, qué se resolvió sin preguntar, en qué se
-apartó lo dicho del guion, qué datos se corrigieron contra la fuente, qué alternativas hay (música,
-portada) y qué quedó sin hacer.
+apartó lo dicho del guion, qué datos se corrigieron contra la fuente, qué logos se bajaron y qué
+marcas fueron con texto, qué alternativas hay y qué quedó sin hacer.
 
-Después, anotar en `memory/` lo que sirva para el próximo video: música aprobada, decisiones de
-estilo, errores nuevos.
+Al entregar se ofrecen dos músicas (`versiones/musica-b-<número>.m4a`) y dos o tres portadas
+(`versiones/portada-b.png`, `portada-c.png`), y se cierra con dos preguntas: qué le cambiarías, y qué
+te gustó que quieras en todos los videos. Cada corrección se arregla en una versión nueva y, si es
+para siempre, se escribe en un solo lugar: `memory/preferencias.md`, `mi-marca`, `referencias/` con
+procedencia, o `memory/reglas.md` (el procedimiento está en `/nuevo-video`, sección 6). La historia
+—música usada y descartada, umbrales que funcionaron— va en `memory/decisiones.md`. Si es el primer
+video, se propone `/calibrar`.
 
 ## Errores que ya costaron tiempo
 
-| Síntoma | Causa y arreglo |
-|---|---|
-| El render sale con contenido de otro video | Quedó una referencia a la plantilla en la copia. `npm run nuevo` avisa; si se copió a mano, buscar `plantilla` con grep en `src/<slug>/` |
-| Un cuadro con el subtítulo viejo justo en la costura | Bloques y subtítulos con distinto redondeo. Usar `f = round(s · 30)` en los dos |
-| La portada sale con la cara del cuadro 0 | `<Freeze>` sobre el video dentro de un still devuelve el cuadro 0. Extraer el PNG con `cuadros.mjs` y montarlo como imagen |
-| Se ve un marcador con líneas en vez de la persona | Falta `public/<slug>/video.mp4`, o `DIR` no coincide con la carpeta. La plantilla no se rompe: muestra dónde caería la cara |
-| La captura de una página sale clara aunque se pidió modo oscuro | Muchos sitios ignoran `--force-dark-mode`. Usar la captura clara dentro de una tarjeta blanca |
-| El efecto "whoosh" suena a tic-tac | Los catálogos describen mal varios archivos. Elegir por nombre de archivo y confirmar con `efecto.mjs` |
-| Falta un efecto o no suena | `efectos.mjs --revisar`; con OK, `npm run efectos`; si Mixkit cambió la dirección, bajarlo a mano y `efectos.mjs --importar <clave> <archivo>` |
-| "Hay clipping" o "falta ducking" según el modelo que escucha | Su crítica es genérica y se repite casi igual en cada versión. Confirmar con `mezcla.mjs` antes de tocar un nivel |
-| La voz satura después de normalizar | AAC más loudnorm dinámico. La voz va con `voz.mjs`: WAV, ganancia fija y limitador a −3 dB |
-| El render falla con una ruta de salida absoluta | Espacios en la ruta más el shell de Windows. Usar ruta relativa y sin espacios |
-| El render se corta con "timeout" en los primeros cuadros | Video de 1440×2560 o varios videos a la vez. `--concurrency=3 --timeout=120000` |
-| Decimales con coma al pasar tiempos por la terminal | Configuración regional. Pasar los tiempos por archivo o por parámetro de script, nunca escritos a mano en el shell |
-| Un número con gradiente se ve invisible dentro de un titular | El `text-shadow` heredado tapa el `background-clip: text`. Poner `textShadow: "none"` en ese span y usar `filter: drop-shadow` |
-| La transcripción inventa un cierre que nadie dijo, o los tiempos se corren varios segundos | Silencios largos en el crudo. Transcribir tramo por tramo, nunca el archivo entero (`referencias/tomas.md`) |
-| Una "s" final o la última sílaba de una frase suena mocha | Quedó poco aire después de la frase. `cortar.mjs` deja 0,14 s (`--tras`): no bajarlo. En `apretar.mjs`, no bajar los umbrales para ganar segundos |
-| Parpadeos de 0,1 a 0,3 s al principio, o un jump cut que no corresponde a nada | Clics, monedas o golpes que quedaron como tramo. `cortar.mjs` los tira y los anota en `descartados`; si alguno quedó, subir `--tramo-minimo` |
-| Falta una palabra corta después de cortar | `cortar.mjs` la tomó por ruido. Buscarla en `descartados` y bajar `--tramo-minimo` |
-| Quedan muchas pausas internas largas después de cortar | Ruido de sala alto. Subir el umbral de a 2 dB y volver a cortar; nunca bajar el mínimo por debajo de 0,20 s: se come los finales suaves. Después, `apretar.mjs` |
-| El video termina pegado a la última palabra, o se ve congelado al final | Falta toma real. La última pieza de la EDL termina 1,3 s después de la palabra, `cortar.mjs --cola 1.2`, y la composición sin `<Freeze>` |
-| Los subtítulos o los zooms se corren después de apretar o acelerar | Se usaron tiempos medidos antes. Transcribir el archivo final y sacar los `CORTES` con `cortes.mjs` |
-| Dos corridas de `cara.mjs` dan números muy distintos, o el mentón cae en la ropa | Mirar `cuadros` en `encuadre.json` (qué se descartó y por qué) y repetir con `--cuadros 16` |
-| Aparece "AVISO … modelo Flash de respaldo" | El modelo Pro no respondió (cuota, o el modelo no existe para esa clave). Flash mide peor: mirar `guia.png` con más cuidado, repetir más tarde o fijar `GEMINI_MODEL` en `.env` |
-| "Ningún cuadro trajo una cara utilizable" | Si dice que Gemini no contestó, es la clave o la conexión; si no, la persona no está a cámara en esos cuadros: probar con más cuadros |
+La tabla completa, síntoma → causa y arreglo, está en `referencias/errores.md`. Leela ante
+cualquier síntoma raro y antes de entregar; cuando aparece un error nuevo, sumale una fila.
 
 ## Relacionadas
 
@@ -266,3 +284,5 @@ estilo, errores nuevos.
   valores neutros de `referencias/estilo-visual.md` y se avisa al entregar.
 - `estudiar-referentes` — cuando la persona manda videos de otros creadores para subir el nivel. Los
   valores que salen de ahí reemplazan a los neutros de `referencias/`.
+- `/guion` — cuando la persona todavía no grabó: escribe el guion que después se edita con esta skill.
+- `/antes-de-grabar` y `/calibrar` — consejos para grabar, y el ajuste después del primer video.

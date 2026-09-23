@@ -2,7 +2,8 @@
 
 > **Esto es método, no estilo: se sigue tal cual.** Lo único que es punto de partida son los tres
 > umbrales de detección de voz, que dependen de la sala y del micrófono de cada persona. El primer
-> video se usa para ajustarlos, y los que funcionen se anotan en `memory/`.
+> video se usa para ajustarlos, y los que funcionen se anotan en `memory/decisiones.md`, sección
+> "Umbrales de corte".
 
 **El caso:** un solo archivo de cámara de 3 o 4 minutos, en el que la persona lee el guion frase por
 frase, con pausas largas, y repite la frase cuando se traba. Hay que quedarse con una sola versión
@@ -91,8 +92,8 @@ de cada línea y que el resultado suene corrido.
    apretar, así que se corren. No se hace a mano: el paso 10 los saca con `cortes.mjs`.
 
 9. **Acelerar, solo si la persona lo pide.** Hay quien prefiere sus videos un poco más rápidos
-   (1,1x es lo común). Es su decisión, no la del editor: preguntale una vez y anotá la respuesta en
-   `memory/`. Si no dice nada, no se acelera.
+   (1,1x es lo común). Es su decisión, no la del editor: está en "Velocidad" de
+   `memory/preferencias.md`. Si dice `(sin preguntar)`, no se acelera.
    `acelerar.mjs public/<slug>/video.mp4 public/<slug>/video.mp4 1.1` — la voz no cambia de tono y
    el video queda a 30 fps. **Todos los tiempos cambian**: cualquier número medido antes (palabras,
    segundos de un gráfico) ya no sirve.

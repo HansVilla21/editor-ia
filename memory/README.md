@@ -6,6 +6,10 @@ sale de tus respuestas y de tus correcciones, y es tuyo.
 Con esto el editor mejora video a video: lo que le dijiste una vez no te lo vuelve a
 preguntar, y lo que corregiste una vez no lo vuelve a hacer mal.
 
+Las plantillas están en `plantillas/` y se copian solas acá la primera vez que abrís el
+proyecto (o a mano, con `node scripts/memoria.mjs`). Tus archivos no viajan en git: una
+actualización del proyecto nunca pisa tus respuestas.
+
 ## Qué hay en cada archivo
 
 | Archivo | Qué guarda | Quién lo escribe y cuándo |

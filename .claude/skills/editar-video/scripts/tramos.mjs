@@ -31,7 +31,7 @@ Devuelve: <mapa.json> con cada tramo de voz en segundos del crudo, y el listado 
   --aire     cuánto se agrega antes y después de cada tramo
 
 Los umbrales dependen de la sala y del micrófono: el primer video se usa para ajustarlos,
-y los que funcionen se anotan en memory/.
+y los que funcionen se anotan en memory/decisiones.md (Umbrales de corte).
 `;
 
 ayuda(process.argv, AYUDA);

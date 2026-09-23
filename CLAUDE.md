@@ -37,8 +37,31 @@ Vertical, 1080×1920, a 30 fps. Es lo que piden Instagram, TikTok y YouTube Shor
 | `src/plantilla/` | La composición de Remotion que se copia por video |
 | `referencias/` | Los videos de referencia del usuario y sus informes |
 | `videos/` | Las entregas |
-| `memory/` | Decisiones tomadas y por qué |
+| `memory/` | Las preferencias de la persona, las reglas que salieron de sus correcciones y la historia de cada video. Viajan solo las plantillas (`memory/plantillas/`) |
 | `.whisper/` | Whisper y su modelo. Se baja con `npm run whisper` y no viaja en el repo |
+
+## Al empezar
+
+Si el aviso de inicio dice algo, decíselo a la persona en una línea y seguí con lo que pidió:
+no insistas. Antes de editar cualquier video, leé `memory/preferencias.md` y
+`memory/reglas.md` (si faltan, `node scripts/memoria.mjs` los arma desde las plantillas).
+
+## Cuando la persona corrige algo
+
+1. Se arregla el video, en una versión nueva.
+2. Se decide si es de una vez o para siempre; si no está claro, se pregunta en una línea.
+3. Si es para siempre, se escribe en un solo lugar: una preferencia en
+   `memory/preferencias.md`; algo de marca en `mi-marca`; un valor de estilo medido en
+   `referencias/`, con su procedencia; todo lo demás en `memory/reglas.md`, con su formato.
+4. Se le dice en una línea qué quedó escrito y dónde.
+
+El procedimiento completo, con ejemplos, está en `/nuevo-video`, sección 6. Una corrección
+que no queda escrita se repite en el video siguiente.
+
+## Cómo se habla
+
+Español, sin jerga. Los textos del proyecto están de vos; si la persona escribe de tú o de
+usted, se le habla como ella.
 
 ## Qué correr sin preguntar
 

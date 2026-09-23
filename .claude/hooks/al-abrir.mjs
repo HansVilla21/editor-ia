@@ -6,6 +6,7 @@
 import { readFileSync } from "node:fs";
 import { revisarMaquina } from "../../scripts/doctor.mjs";
 import { siguientePaso } from "../../scripts/estado.mjs";
+import { asegurarMemoria } from "../../scripts/memoria.mjs";
 
 const leerEstado = () => {
   try {
@@ -14,6 +15,9 @@ const leerEstado = () => {
     return {};
   }
 };
+
+// La memoria de la persona (preferencias, reglas, decisiones) se arma sola desde las plantillas.
+asegurarMemoria();
 
 const paso = siguientePaso({ revisiones: await revisarMaquina(), estado: leerEstado() });
 

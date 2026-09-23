@@ -118,7 +118,7 @@ export type Cue = {
 export type Cta = {
   /** Segundo de la primera palabra del cierre. Desde ahí se ocultan los subtítulos. */
   desde: number;
-  /** El verbo, en el trato de la persona (mi-marca): "Comentá", "Comenta", "Escribí"… */
+  /** El verbo, en el trato de la persona ("Trato" en memory/preferencias.md): "Comentá", "Comenta", "Escribí"… */
   pide: string;
   /** La palabra que tienen que comentar. Va grande y con el acento. */
   palabra: string;

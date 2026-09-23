@@ -65,7 +65,7 @@ bruscos de sección.
 7. **Cortar el tramo** del largo del video más 4 s, con fundido de entrada de 0,25 s:
    `tramo.mjs <scratch>/musica/<número>.mp3 <scratch>/musica/tramo.wav --desde <arranque> --duracion <video + 4>`
 8. **Nivelar a −33 LUFS:** `nivelar.mjs <scratch>/musica/tramo.wav public/<slug>/musica.m4a -33`
-9. **Anotarla en `memory/`** —la memoria del proyecto de esta persona—: número de Mixkit, título,
+9. **Anotarla en `memory/decisiones.md`, sección "Música"** —la memoria del proyecto de esta persona—: número de Mixkit, título,
    segundo de arranque y en qué video se usó. Así el próximo video no vuelve a escuchar todo, y se
    evita repetir la misma pista en videos seguidos.
 

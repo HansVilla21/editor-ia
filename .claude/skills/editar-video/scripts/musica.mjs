@@ -121,4 +121,4 @@ for (const [nombre, f] of ranking) {
 
 console.log("");
 console.log(`fichas en ${corta(salida)}`);
-console.log("Esto descarta lo que no sirve. La que quede, escucharla antes de usarla, y anotarla en memory/ con su segundo de arranque.");
+console.log("Esto descarta lo que no sirve. La que quede, escucharla antes de usarla, y anotarla en memory/decisiones.md (sección Música) con su segundo de arranque.");

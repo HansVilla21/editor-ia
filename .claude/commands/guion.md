@@ -27,9 +27,10 @@ Antes de escribir, leé lo que ya se sabe de la persona, si existe: las seccione
 hacer nunca) y 6 (cómo habla) de `.claude/skills/mi-marca/SKILL.md`, `memory/preferencias.md` y
 `memory/reglas.md`.
 
-**El trato del guion es el que ella usa al hablar.** Las pistas, en orden: la sección 6 de
-`mi-marca` (rige los textos en pantalla, pero suele coincidir con cómo habla), el "Trato" de
-las preferencias, y el que usa al escribirte. Si no se nota, tú, y lo decís al entregar. En
+**El trato del guion es el que ella usa al hablar.** Las pistas, en orden: el "Trato" de
+`memory/preferencias.md` (rige los textos en pantalla, pero suele coincidir con cómo habla) y el
+que usa al escribirte. La sección 6 de `mi-marca` suma las palabras que usa y las que nunca usa.
+Si no se nota, tú, y lo decís al entregar. En
 ese trato van las frases del guion y el pedido del cierre; el chat y los rótulos del archivo
 siguen como siempre en este proyecto.
 
