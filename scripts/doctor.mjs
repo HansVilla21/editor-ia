@@ -1,11 +1,9 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import * as util from "node:util";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
-import { whisperInstalado } from "./whisper.mjs";
+import { RAIZ, leerEntorno } from "./entorno.mjs";
+import { AYUDA_WHISPER_DIR, carpetaWhisper, whisperInstalado } from "./whisper.mjs";
 
-export const RAIZ = fileURLToPath(new URL("..", import.meta.url));
+export { RAIZ, leerEntorno };
 
 // El Chrome con el que renderiza Remotion vive unos 106 caracteres más adentro del proyecto.
 // Windows no abre rutas de más de 260: con el proyecto por encima de ~150, el render falla
@@ -44,8 +42,9 @@ export function revisarEntorno({ env, versionNode, rutaFfmpeg, whisperListo, pla
     {
       nombre: "whisper",
       ok: Boolean(whisperListo),
-      comoResolver:
-        "Corré npm run whisper: baja el programa y el modelo que saca las palabras (unos 490 MB, una sola vez, dentro del proyecto)",
+      comoResolver: String(env.WHISPER_DIR ?? "").trim()
+        ? AYUDA_WHISPER_DIR(env.WHISPER_DIR.trim())
+        : "Corré npm run whisper: baja el programa y el modelo que saca las palabras (unos 490 MB, una sola vez, dentro del proyecto)",
     },
     {
       nombre: "clave-gemini",
@@ -56,25 +55,15 @@ export function revisarEntorno({ env, versionNode, rutaFfmpeg, whisperListo, pla
   ];
 }
 
-/**
- * El entorno con lo que haya en el archivo .env de la carpeta. Lo que ya estaba en el
- * entorno gana, igual que cuando Node carga el archivo solo.
- */
-export function leerEntorno(carpeta = RAIZ, base = process.env) {
-  const archivo = join(carpeta, ".env");
-  // Con un Node anterior a 20.12 no hay parseEnv: el diagnóstico de Node ya avisa de eso.
-  if (!existsSync(archivo) || !util.parseEnv) return { ...base };
-  return { ...util.parseEnv(readFileSync(archivo, "utf8")), ...base };
-}
-
 /** Junta los datos reales de esta máquina y los revisa. */
 export async function revisarMaquina() {
   const { default: ffmpeg } = await import("ffmpeg-static").catch(() => ({ default: null }));
+  const env = leerEntorno();
   return revisarEntorno({
-    env: leerEntorno(),
+    env,
     versionNode: process.version,
     rutaFfmpeg: ffmpeg,
-    whisperListo: whisperInstalado(),
+    whisperListo: whisperInstalado(carpetaWhisper(env)),
     plataforma: process.platform,
     rutaProyecto: RAIZ,
   });

@@ -43,7 +43,7 @@ Opciones:
   --idioma es            idioma del audio (por defecto es)
   --nombres "A, B, C"    nombres propios que tiene que escribir bien (modo gemini)
   --modelo small         modelo de Whisper (tiny, base, small, medium, large-v3)
-  --whisper <carpeta>    dónde está Whisper (por defecto .whisper/, dentro del proyecto)
+  --whisper <carpeta>    dónde está Whisper (por defecto WHISPER_DIR de .env, o .whisper/ en el proyecto)
   --instalar             baja Whisper y el modelo si faltan. Es lo mismo que npm run whisper.
 
 Con silencios largos, la transcripción del archivo entero deriva varios segundos y a veces
