@@ -43,7 +43,7 @@ export async function medirTramas(ruta) {
 }
 
 /** Percentil con interpolación lineal entre los dos vecinos, el mismo que usa numpy. */
-function percentil(valores, p) {
+export function percentil(valores, p) {
   const orden = Float64Array.from(valores).sort();
   if (orden.length === 0) return -Infinity;
   const pos = ((orden.length - 1) * p) / 100;

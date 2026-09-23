@@ -20,7 +20,7 @@ import {
   cuadroDe,
 } from "./_comun.mjs";
 import { empalmar, leerTamano } from "./_empalmar.mjs";
-import { medirTramas, detectarPausas, pausasInternas } from "./_pausas.mjs";
+import { medirTramas, detectarPausas, pausasInternas, percentil } from "./_pausas.mjs";
 
 const AYUDA = `
 cortar.mjs — corta los silencios y deja el video listo para componer
@@ -45,10 +45,12 @@ Devuelve: <salida.mp4> a 30 fps y 1080x1920 (o --tamano), y <tramos.json> con ca
              persona mirando o sonriendo, no sobre un cuadro congelado. 0 la saca.
   --tramo-minimo
              cuánta voz tiene que tener un sonido para quedarse, en segundos. Se cuenta
-             la energía entre 100 Hz y 1 kHz, donde viven las vocales. Con menos es un
-             clic, una moneda o una respiración, y se tira; salvo que tenga una sílaba
-             sostenida (0.08 s seguidos con voz, sin caer más de 10 dB), que es una
-             palabra corta y se queda. Un golpe en la mesa se apaga en una trama.
+             la energía entre 100 Hz y 1 kHz, donde viven las vocales, por encima del
+             umbral o a menos de 20 dB de lo más fuerte de la grabación (así una
+             grabación baja no pierde lo dicho). Con menos es un clic, una moneda o una
+             respiración, y se tira; salvo que tenga una sílaba sostenida (0.08 s
+             seguidos con voz, sin caer más de 10 dB), que es una palabra corta y se
+             queda. Un golpe en la mesa se apaga en una trama.
              Los que se tiran quedan anotados en <tramos.json>, en "descartados".
   --tamano   ANCHOxALTO de la salida. Con una grabación en 4K, 1440x2560 deja margen para
              que los acercamientos del zoom sigan nítidos.
@@ -107,6 +109,11 @@ const salto = Math.round(PASO * muestreoVoz);
 const nivelVoz = [];
 for (let i = 0; i + salto <= bandaVoz.length; i += salto) nivelVoz.push(aDb(rms(bandaVoz, i, i + salto)));
 
+// Una trama tiene voz si pasa el umbral, o si está a menos de 20 dB de lo más fuerte que se
+// dijo en la grabación (el percentil 99): en una grabación baja las vocales no llegan al umbral
+// aunque sus picos sí, y sin esto se tiraría todo lo dicho.
+const umbralVoz = Math.min(umbral, percentil(nivelVoz, 99) - 20);
+
 // La sílaba sostenida es una racha de tramas con voz que no cae más de 10 dB desde su máximo:
 // una vocal mantiene el nivel, un golpe en la mesa se apaga en una trama.
 function medirVoz(a, b) {
@@ -116,7 +123,7 @@ function medirVoz(a, b) {
   let sostenida = 0;
   for (let i = Math.floor(a / PASO); i < Math.min(nivelVoz.length, Math.ceil(b / PASO)); i++) {
     const nivel = nivelVoz[i];
-    if (nivel < umbral) {
+    if (nivel < umbralVoz) {
       racha = 0;
       maximo = -Infinity;
       continue;

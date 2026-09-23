@@ -156,3 +156,19 @@ test("cortar anota en tramos.json las pausas internas de más de 0,35 s que qued
   assert.ok(Math.abs(pausas[0].inicio - salidaPausa) < 0.05, `empieza en ${pausas[0].inicio}`);
   assert.ok(Math.abs(pausas[0].duracion - 0.5) < 0.05, `dura ${pausas[0].duracion}`);
 });
+
+test("cortar no tira las palabras de una grabación baja", () => {
+  // Voz a −37 dB: el pico pasa el umbral de −36, pero las vocales quedan por debajo.
+  const clip = crearClip(
+    carpeta,
+    "baja",
+    juntar(silencio(0.5), tono(220, 0.02, 0.8), silencio(0.8), tono(180, 0.02, 0.2), silencio(0.8)),
+  );
+  const mapa = join(carpeta, "baja-tramos.json");
+  const r = correr("cortar.mjs", [clip, join(carpeta, "baja.mp4"), mapa, "--cola", "0"]);
+  assert.equal(r.status, 0, r.stderr);
+  const { tramos } = leerJson(mapa);
+  for (const [a, b] of [[0.5, 1.3], [2.1, 2.3]]) {
+    assert.ok(tramos.some((t) => t.inicioOrigen <= a && t.finOrigen >= b), `se perdió la palabra ${a}-${b}`);
+  }
+});
