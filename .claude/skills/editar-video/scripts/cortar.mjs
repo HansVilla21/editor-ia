@@ -32,7 +32,8 @@ const AYUDA = `
 cortar.mjs — corta los silencios y deja el video listo para componer
 
   node .claude/skills/editar-video/scripts/cortar.mjs <entrada> <salida.mp4> <tramos.json> \\
-       [--umbral -36] [--minimo 0.28] [--antes 0.08] [--tras 0.14] [--tramo-minimo 0.25]
+       [--umbral -36] [--minimo 0.28] [--antes 0.08] [--tras 0.14] [--cola 1.2] \\
+       [--tramo-minimo 0.25]
 
 Recibe: la grabación (o el montaje de tomas, si la grabación era cruda).
 Devuelve: <salida.mp4> a 1080x1920 y 30 fps, y <tramos.json> con cada tramo que quedó,
@@ -45,6 +46,9 @@ Devuelve: <salida.mp4> a 1080x1920 y 30 fps, y <tramos.json> con cada tramo que 
   --tras     cuánto se deja después de cada frase. La cola de una "s" final tiene poca
              energía, ffmpeg la cuenta como silencio, y con menos de 0.14 se oye mocha
   --aire X   el atajo de antes: equivale a --antes X --tras max(X, 0.14)
+  --cola     cuánta toma real se deja después de la última palabra (si la grabación la
+             tiene). Así el video no termina pegado a la sílaba y el cierre entra sobre la
+             persona mirando o sonriendo, no sobre un cuadro congelado. 0 la saca.
   --tramo-minimo
              cuánta voz tiene que tener un sonido para quedarse, en segundos. Se cuenta
              la energía entre 100 Hz y 1 kHz, donde viven las vocales. Con menos es un
@@ -74,6 +78,7 @@ const aire = opciones.aire === undefined ? null : numero(opciones.aire, 0.08);
 const antes = numero(opciones.antes, aire ?? 0.08);
 const tras = numero(opciones.tras, Math.max(aire ?? 0, 0.14));
 const tramoMinimo = numero(opciones["tramo-minimo"], 0.25);
+const cola = numero(opciones.cola, 1.2);
 
 const info = await sondear(entrada);
 if (!info.audio) morir("La entrada no tiene audio: no hay silencios que detectar.");
@@ -142,7 +147,12 @@ for (const [a, b] of sonidos) {
 }
 if (conVoz.length === 0) morir("No quedó ningún tramo con voz. Revisá el umbral.");
 
-const bruto = conVoz.map(([a, b]) => [Math.max(0, a - antes), Math.min(duracion, b + tras)]);
+// Después de la última palabra se deja --cola de toma real: la persona se queda mirando o
+// sonríe, y el cierre entra sobre eso. Cortado ahí, el video termina pegado a la sílaba.
+const bruto = conVoz.map(([a, b], i) => {
+  const despues = i === conVoz.length - 1 ? Math.max(tras, cola) : tras;
+  return [Math.max(0, a - antes), Math.min(duracion, b + despues)];
+});
 
 // Dos tramos casi pegados son un tramo: cortar ahí solo mete un click.
 const tramos = [];
@@ -220,6 +230,7 @@ escribirJson(mapaJson, {
   antes,
   tras,
   tramoMinimo,
+  cola,
   silencioRestante: Number(porcentaje.toFixed(1)),
   cortes: tabla.map((f) => f.cuadro),
   tramos: tabla,

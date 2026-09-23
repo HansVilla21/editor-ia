@@ -98,3 +98,12 @@ test("cortar no deja tramos sin una palabra adentro", () => {
     assert.ok(conPalabra, `el tramo ${t.inicioOrigen}-${t.finOrigen} no tiene voz`);
   }
 });
+
+test("con --cola 1.2 el video sigue al menos 1,1 s de toma real después de la última palabra", () => {
+  const db = niveles(principal.audio);
+  let ultima = db.length - 1;
+  while (ultima > 0 && db[ultima] < -30) ultima--;
+  const finPalabra = (ultima + 1) * 0.005;
+  const duracion = principal.audio.length / 48000;
+  assert.ok(duracion - finPalabra >= 1.1, `termina ${(duracion - finPalabra).toFixed(2)} s después de la palabra`);
+});
