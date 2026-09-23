@@ -1,5 +1,5 @@
 import { Composition } from "remotion";
-import { Prueba } from "./plantilla/Prueba";
+import { Prueba } from "./Prueba";
 
 /**
  * Acá se registran las composiciones. La de prueba viene incluida y confirma
