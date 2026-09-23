@@ -2,6 +2,7 @@
  * Revisa los datos una vez por render y avisa en la consola lo que suele salir mal. No frena
  * nada: el video renderiza igual. Los avisos se leen en la terminal del render o en el Studio.
  */
+import { getRemotionEnvironment } from "remotion";
 import { hayDelVideo, MUSICA, VIDEO, VOZ } from "./archivos";
 import { medidasDelCta } from "./Cta";
 import { BLOQUES, CTA, ENCUADRE, TITULAR } from "./datos";
@@ -44,8 +45,14 @@ export function avisos(): string[] {
 
 let revisado = false;
 
+/**
+ * Una vez por render. Cada pestaña del navegador carga este código de nuevo, así que en
+ * `npx remotion render` avisa solo la pestaña principal (las demás callan); en el Studio, una
+ * vez por carga. previa.mjs abre una pestaña por cuadro y filtra los repetidos de su lado.
+ */
 export function revisarUnaVez() {
   if (revisado) return;
   revisado = true;
+  if (getRemotionEnvironment().isRendering && !window.remotion_isMainTab) return;
   for (const a of avisos()) console.warn(`[revisión] ${a}`);
 }
