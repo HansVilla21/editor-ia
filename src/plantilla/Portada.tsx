@@ -5,12 +5,14 @@
  * (congelar el video dentro de un still devuelve el cuadro 0). Se sube 130 px, se agranda
  * 1,25 alrededor de la cara y lleva un retoque suave. Todo lo importante queda entre y = 240 e
  * y = 1680, el recorte que se ve en la grilla del perfil; el texto nunca sube hasta el mentón.
+ * Con PORTADA.logo, el logo de la marca va arriba de la etiqueta.
  */
 import React from "react";
 import { AbsoluteFill, Img } from "remotion";
 import { delVideo, hayDelVideo, PORTADA as FOTO, srcDelVideo } from "./archivos";
 import { ENCUADRE, PORTADA } from "./datos";
 import { CX, CY, ZONA } from "./encuadre";
+import { hayLogo, Logo, SOMBRA_SOBRE_TOMA } from "./Logo";
 import { colores, radio, tipografia } from "./marca";
 import { Marcador } from "./Marcador";
 import { tamanoQueEntra } from "./piezas";
@@ -18,6 +20,9 @@ import { ConEnfasis } from "./Titular";
 
 const SUBE = 130;
 const ESCALA = 1.25;
+/** El logo de la marca, arriba de la etiqueta. */
+const LOGO = 120;
+const DEBAJO_DEL_LOGO = 28;
 /** El mentón en la portada, después de subir y agrandar la foto. */
 const MENTON = CY - SUBE + (ENCUADRE.menton - CY) * ESCALA;
 
@@ -41,7 +46,9 @@ const Chip: React.FC<{ n: number; texto: string }> = ({ n, texto }) => (
 
 export const Portada: React.FC = () => {
   const titulo = tamanoQueEntra(PORTADA.titulo, 230, 960, 0.6);
+  const logo = hayLogo(PORTADA.logo) ? PORTADA.logo : null;
   const alto =
+    (logo ? LOGO + DEBAJO_DEL_LOGO : 0) +
     (PORTADA.etiqueta ? 64 : 0) + titulo * 0.95 + (PORTADA.subtitulo ? 84 : 0) + ((PORTADA.items ?? []).length ? 100 : 0);
   // El bloque de texto se apoya abajo, en 1640, y se achica si llegaría a tocar el mentón.
   const base = ZONA.abajo - 40;
@@ -84,6 +91,7 @@ export const Portada: React.FC = () => {
           transformOrigin: "50% 100%",
         }}
       >
+        {logo ? <Logo slug={logo} alto={LOGO} sombra={SOMBRA_SOBRE_TOMA} style={{ marginBottom: DEBAJO_DEL_LOGO }} /> : null}
         {PORTADA.etiqueta ? (
           <span
             style={{
