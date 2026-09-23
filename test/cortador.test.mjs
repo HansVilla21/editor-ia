@@ -4,7 +4,7 @@
  */
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -20,6 +20,7 @@ import {
   crearClip,
   leerAudio,
   niveles,
+  sondearVideo,
 } from "./_senales.mjs";
 
 const carpeta = mkdtempSync(join(tmpdir(), "cortador-"));
@@ -106,4 +107,44 @@ test("con --cola 1.2 el video sigue al menos 1,1 s de toma real después de la �
   const finPalabra = (ultima + 1) * 0.005;
   const duracion = principal.audio.length / 48000;
   assert.ok(duracion - finPalabra >= 1.1, `termina ${(duracion - finPalabra).toFixed(2)} s después de la palabra`);
+});
+
+// Dos palabras con una pausa de 0,5 s en el medio. Con --minimo 0.6 esa pausa no se corta.
+const SEGUNDO = { primera: [0.8, 1.5], pausa: [1.5, 2.0], segunda: [2.0, 3.0] };
+let segundo;
+
+before(() => {
+  const clip = crearClip(
+    carpeta,
+    "segundo",
+    juntar(silencio(0.8), tono(220, 0.3, 0.7), silencio(0.5), tono(260, 0.3, 1.0), silencio(0.8)),
+  );
+  const video = join(carpeta, "segundo-corte.mp4");
+  const mapa = join(carpeta, "segundo-tramos.json");
+  const r = correr("cortar.mjs", [
+    clip, video, mapa, "--minimo", "0.6", "--aire", "0.05", "--cola", "0", "--tamano", "1440x2560",
+  ]);
+  assert.equal(r.status, 0, r.stderr);
+  segundo = { clip, video, mapa: leerJson(mapa) };
+});
+
+test("--aire X sigue andando: X antes de la frase y nunca menos de 0,14 s después", () => {
+  const [tramo] = segundo.mapa.tramos;
+  assert.ok(Math.abs(tramo.inicioOrigen - (SEGUNDO.primera[0] - 0.05)) < 0.01, `empieza en ${tramo.inicioOrigen}`);
+  assert.ok(Math.abs(tramo.finOrigen - (SEGUNDO.segunda[1] + 0.14)) < 0.01, `termina en ${tramo.finOrigen}`);
+});
+
+test("cortar con --tamano 1440x2560 sale a 1440x2560", () => {
+  const { ancho, alto } = sondearVideo(segundo.video);
+  assert.deepEqual([ancho, alto], [1440, 2560]);
+});
+
+test("montar con --tamano 1440x2560 sale a 1440x2560", () => {
+  const edl = join(carpeta, "edl.json");
+  writeFileSync(edl, JSON.stringify([{ desde: 0.7, hasta: 1.6 }, { desde: 1.9, hasta: 3.2 }]));
+  const video = join(carpeta, "montado.mp4");
+  const r = correr("montar.mjs", [segundo.clip, edl, video, join(carpeta, "montaje.json"), "--tamano", "1440x2560"]);
+  assert.equal(r.status, 0, r.stderr);
+  const { ancho, alto } = sondearVideo(video);
+  assert.deepEqual([ancho, alto], [1440, 2560]);
 });

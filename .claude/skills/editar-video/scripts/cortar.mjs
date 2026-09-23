@@ -1,12 +1,9 @@
 /**
- * Fase 2 — sacar las pausas de una grabación y dejarla en 1080x1920 a 30 fps.
+ * Fase 2 — sacar las pausas de una grabación y dejarla en 1080x1920 (o --tamano) a 30 fps.
  *
  * Además del video deja un mapa de tramos: los inicios de cada tramo son los jump cuts,
  * y de ahí sale el zoom alterno del estilo visual.
  */
-import { renameSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
-
 import {
   ayuda,
   leerArgumentos,
@@ -17,27 +14,23 @@ import {
   leerPcm,
   rms,
   aDb,
-  ffmpeg,
   escribirJson,
-  temporal,
   corta,
   fijo,
   cuadroDe,
-  mismoArchivo,
-  vecinoTemporal,
-  asegurarCarpeta,
 } from "./_comun.mjs";
+import { empalmar, leerTamano } from "./_empalmar.mjs";
 
 const AYUDA = `
 cortar.mjs — corta los silencios y deja el video listo para componer
 
   node .claude/skills/editar-video/scripts/cortar.mjs <entrada> <salida.mp4> <tramos.json> \\
        [--umbral -36] [--minimo 0.28] [--antes 0.08] [--tras 0.14] [--cola 1.2] \\
-       [--tramo-minimo 0.25]
+       [--tramo-minimo 0.25] [--tamano 1080x1920]
 
 Recibe: la grabación (o el montaje de tomas, si la grabación era cruda).
-Devuelve: <salida.mp4> a 1080x1920 y 30 fps, y <tramos.json> con cada tramo que quedó,
-          sus segundos en el original, dónde cae en la salida y en qué cuadro empieza.
+Devuelve: <salida.mp4> a 30 fps y 1080x1920 (o --tamano), y <tramos.json> con cada tramo
+          que quedó: sus segundos en el original, dónde cae en la salida y en qué cuadro empieza.
           Esos cuadros son los CORTES: los jump cuts del zoom alterno.
 
   --umbral   decibeles por debajo de los cuales es silencio (más alto corta más)
@@ -56,6 +49,8 @@ Devuelve: <salida.mp4> a 1080x1920 y 30 fps, y <tramos.json> con cada tramo que 
              sostenida (0.08 s seguidos con voz, sin caer más de 10 dB), que es una
              palabra corta y se queda. Un golpe en la mesa se apaga en una trama.
              Los que se tiran quedan anotados en <tramos.json>, en "descartados".
+  --tamano   ANCHOxALTO de la salida. Con una grabación en 4K, 1440x2560 deja margen para
+             que los acercamientos del zoom sigan nítidos.
 
 La entrada y la salida pueden ser el mismo archivo: se escribe aparte y recién al final
 se reemplaza.
@@ -79,6 +74,7 @@ const antes = numero(opciones.antes, aire ?? 0.08);
 const tras = numero(opciones.tras, Math.max(aire ?? 0, 0.14));
 const tramoMinimo = numero(opciones["tramo-minimo"], 0.25);
 const cola = numero(opciones.cola, 1.2);
+const tamano = leerTamano(opciones.tamano);
 
 const info = await sondear(entrada);
 if (!info.audio) morir("La entrada no tiene audio: no hay silencios que detectar.");
@@ -164,41 +160,7 @@ for (const [a, b] of bruto) {
   }
 }
 
-const partes = [];
-const uniones = [];
-tramos.forEach(([a, b], i) => {
-  const fundido = Math.min(0.012, (b - a) / 4);
-  partes.push(
-    `[0:v]trim=start=${a}:end=${b},setpts=PTS-STARTPTS,fps=30,` +
-      `scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1[v${i}]`,
-  );
-  partes.push(
-    `[0:a]atrim=start=${a}:end=${b},asetpts=PTS-STARTPTS,aresample=48000,` +
-      `afade=t=in:d=${fundido},afade=t=out:st=${(b - a - fundido).toFixed(4)}:d=${fundido}[a${i}]`,
-  );
-  uniones.push(`[v${i}][a${i}]`);
-});
-const grafo = `${partes.join(";\n")};\n${uniones.join("")}concat=n=${tramos.length}:v=1:a=1[v][a]`;
-
-// El grafo va por archivo: con muchos tramos la línea de comando no da abasto.
-const archivoGrafo = temporal("-cortar.txt");
-writeFileSync(archivoGrafo, grafo, "utf8");
-
-const enElLugar = mismoArchivo(entrada, salidaPedida);
-const salida = enElLugar ? vecinoTemporal(salidaPedida) : salidaPedida;
-asegurarCarpeta(salida);
-
-await ffmpeg([
-  "-v", "error", "-y",
-  "-i", entrada,
-  "-filter_complex_script", archivoGrafo,
-  "-map", "[v]", "-map", "[a]",
-  "-c:v", "libx264", "-crf", "15", "-preset", "medium", "-pix_fmt", "yuv420p",
-  "-c:a", "aac", "-b:a", "192k",
-  salida,
-]);
-
-if (enElLugar) renameSync(salida, resolve(salidaPedida));
+await empalmar(entrada, salidaPedida, tramos, { tamano });
 
 let acumulado = 0;
 const tabla = tramos.map(([a, b]) => {
@@ -231,6 +193,7 @@ escribirJson(mapaJson, {
   tras,
   tramoMinimo,
   cola,
+  tamano: `${tamano.ancho}x${tamano.alto}`,
   silencioRestante: Number(porcentaje.toFixed(1)),
   cortes: tabla.map((f) => f.cuadro),
   tramos: tabla,
