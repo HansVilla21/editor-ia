@@ -23,7 +23,8 @@ import { leerTamano, encuadrar } from "./_empalmar.mjs";
 const AYUDA = `
 montar.mjs — pega las tomas elegidas del crudo en un video de 1080x1920 a 30 fps
 
-  node .claude/skills/editar-video/scripts/montar.mjs <crudo> <edl.json> <salida.mp4> <montaje.json>        [--tamano 1080x1920]
+  node .claude/skills/editar-video/scripts/montar.mjs <crudo> <edl.json> <salida.mp4> <montaje.json> \\
+       [--tamano 1080x1920]
 
 Recibe: el crudo y una EDL con los segundos del crudo que se quedan, en orden final.
 
