@@ -17,6 +17,7 @@ import {
   corta,
   fijo,
   escribirJson,
+  asegurarCarpeta,
 } from "./_comun.mjs";
 
 const AYUDA = `
@@ -74,6 +75,7 @@ const medido = Number(m.input_i);
 const picoMedido = Number(m.input_tp);
 const ganancia = objetivo - medido;
 
+asegurarCarpeta(salida);
 const comunes = ["-v", "error", "-y", "-i", entrada, "-ar", "48000"];
 const video = copiarVideo ? ["-c:v", "copy"] : ["-vn"];
 

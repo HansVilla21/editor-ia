@@ -4,7 +4,7 @@
  * Si no hay nada pendiente, no dice nada.
  */
 import { readFileSync } from "node:fs";
-import { revisarEntorno } from "../../scripts/doctor.mjs";
+import { revisarMaquina } from "../../scripts/doctor.mjs";
 import { siguientePaso } from "../../scripts/estado.mjs";
 
 const leerEstado = () => {
@@ -15,15 +15,6 @@ const leerEstado = () => {
   }
 };
 
-const { default: ffmpeg } = await import("ffmpeg-static").catch(() => ({ default: null }));
-
-const paso = siguientePaso({
-  revisiones: revisarEntorno({
-    env: process.env,
-    versionNode: process.version,
-    rutaFfmpeg: ffmpeg,
-  }),
-  estado: leerEstado(),
-});
+const paso = siguientePaso({ revisiones: await revisarMaquina(), estado: leerEstado() });
 
 if (paso) console.log(paso.mensaje);

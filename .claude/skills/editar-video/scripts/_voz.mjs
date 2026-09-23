@@ -2,14 +2,18 @@
  * Lo que comparten las herramientas de voz: preparar el audio, hablar con Whisper
  * y juntar los tokens sueltos en palabras.
  */
-import { existsSync, readdirSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
-
 import { ffmpeg, temporal, sondear, morir, corta } from "./_comun.mjs";
+import {
+  CARPETA_WHISPER,
+  WHISPER_VERSION,
+  whisperInstalado,
+  instalarWhisper,
+} from "../../../../scripts/whisper.mjs";
 
-export const WHISPER_VERSION = "1.5.5";
-export const carpetaWhisperPorDefecto = () => join(homedir(), ".whisper-cpp");
+export { WHISPER_VERSION, whisperInstalado };
+
+/** Whisper vive dentro del proyecto, en .whisper/ (ver scripts/whisper.mjs). */
+export const carpetaWhisperPorDefecto = () => CARPETA_WHISPER;
 
 /**
  * Deja el audio como lo quiere Whisper: WAV de 16 kHz, mono, PCM de 16 bits.
@@ -64,36 +68,24 @@ export async function tramoConAire(entrada, inicio, fin, aire = 0.3) {
   return destino;
 }
 
-export function whisperInstalado(carpeta, modelo) {
-  if (!existsSync(carpeta)) return false;
-  const archivos = readdirSync(carpeta);
-  const hayBinario = archivos.some((n) => /^(main|whisper-cli)(\.exe)?$/i.test(n));
-  const hayModelo = existsSync(join(carpeta, `ggml-${modelo}.bin`));
-  return hayBinario && hayModelo;
-}
-
 export const AYUDA_WHISPER = (carpeta, modelo) =>
   [
     `Whisper no está instalado en ${carpeta}.`,
     "",
-    "Se baja una sola vez y queda fuera del proyecto, así que hay que pedirlo explícitamente:",
+    "Se baja una sola vez y queda dentro del proyecto, en .whisper/:",
     "",
-    `  node .claude/skills/editar-video/scripts/transcribir.mjs <audio> <salida.json> --instalar --modelo ${modelo}`,
+    modelo === "small" ? "  npm run whisper" : `  npm run whisper -- --modelo ${modelo}`,
     "",
-    "Son unos 500 MB con el modelo small. La otra opción, sin instalar nada, es la segunda",
-    "opinión de Gemini:  --motor gemini",
+    "Son unos 490 MB con el modelo small. Mientras tanto, la segunda opinión de Gemini",
+    "transcribe sin instalar nada:  --motor gemini",
   ].join("\n");
 
 export async function asegurarWhisper(carpeta, modelo) {
-  const { installWhisperCpp, downloadWhisperModel } = await import("@remotion/install-whisper-cpp");
-  console.log(`Instalando Whisper en ${carpeta} (una sola vez)…`);
-  await installWhisperCpp({ to: carpeta, version: WHISPER_VERSION, printOutput: false });
-  const { alreadyExisted } = await downloadWhisperModel({
-    model: modelo,
-    folder: carpeta,
-    printOutput: false,
-  });
-  console.log(alreadyExisted ? `El modelo ${modelo} ya estaba.` : `Modelo ${modelo} descargado.`);
+  try {
+    await instalarWhisper({ carpeta, modelo });
+  } catch (error) {
+    morir(error.message);
+  }
 }
 
 /** Devuelve los tokens de Whisper en el formato {text, startMs, endMs}. */
