@@ -91,12 +91,16 @@ Colores neutros. El acento sale de `mi-marca`; mientras esté vacía, `#5B8DEF`.
 
 - Fondo: `radial-gradient(120% 70% at 50% 0%, #161A22, #0B0F16 60%)`, con una barra de 4 px del
   color de acento arriba, que tapa la costura con el video.
-- Cabecera, en coordenadas del panel, y = 64: etiqueta de tipo y posición (`SKILL 03 / 05`) en
+- Cabecera, en coordenadas del panel, y = 64: etiqueta de tipo y posición (`PASO 1 / 3`) en
   monoespaciada de 26 px con el acento, tags a la derecha, título de 84 px peso 800
   `letter-spacing -0.035em`, y la fuente en monoespaciada de 28 px. Entra con blur-in escalonado:
   +0, +2 y +4 cuadros.
 - Cuerpo: desde y = 290 hasta y = 720 del panel (1680 absoluto). Más abajo queda la interfaz de la
   app: ahí no va nada importante.
+- **Nada del cuerpo sube por encima de y = 290**, aunque sea para ganar lugar: una tarjeta corrida
+  para arriba tapa el título de la cabecera, y es de lo primero que se nota.
+- **Lo que va en una fila tiene que entrar en esa fila.** Chips, tags o secciones que no entran se
+  achican o se sacan; si parten en dos renglones se salen de su tarjeta. Mirarlo en los cuadros.
 - Tarjetas `#141821`, borde `#272C36`, radio 12. Estados: ok `#3FBF87`, alerta `#E8B440`,
   error `#E5675F`.
 

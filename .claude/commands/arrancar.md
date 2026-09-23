@@ -46,6 +46,10 @@ Antes de bajarlo, pedile el OK con estos datos: son unos 490 MB y tarda unos min
 - En Mac o Linux, Whisper se compila en la máquina: hacen falta `git` y un compilador. Si falla por eso, el mensaje del comando dice qué instalar (en Mac: `xcode-select --install`). Explicáselo en simple y volvé a correrlo.
 - Si prefiere no bajarlo todavía, seguí con el arranque, pero avisale que hace falta antes del primer video: Gemini da el texto por frase, no el tiempo de cada palabra, y sin eso no hay subtítulos sincronizados palabra por palabra. Al abrir el proyecto se lo va a recordar.
 
+## 4b. Efectos de sonido (opcional)
+
+Los videos llevan sonidos cortos: un whoosh en los cambios de plano, clics, un impacto al cierre. Vienen de Mixkit, gratis y sin atribución, pero su licencia no deja redistribuirlos, y por eso no vienen en el proyecto. Pedile el OK con estos datos: son 15 archivos, unos 7 MB, y quedan en `public/sfx/`. Con el OK, corré `npm run efectos`. Si alguno falla, el comando dice cuál y cómo bajarlo a mano: contáselo simple. Si prefiere esperar, seguí; se bajan antes del primer video con el mismo comando.
+
 ## 5. La prueba de fuego
 
 Corré `npm run render`.

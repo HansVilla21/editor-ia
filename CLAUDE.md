@@ -47,7 +47,9 @@ lecturas de git.
 
 ffmpeg y ffprobe vienen en `node_modules` y **no están en el PATH**: nunca escribas un
 comando `ffmpeg …` suelto. Las herramientas de `.claude/skills/editar-video/scripts/`
-reciben los videos tal cual y usan el ffmpeg del proyecto.
+reciben los videos tal cual y usan el ffmpeg del proyecto. Si alguna vez hace falta ffmpeg
+directo (el análisis de referencias lo usa), se toma de ahí:
+`FF=$(node -e "console.log(require('ffmpeg-static'))")`.
 
 ## Qué requiere confirmación
 
