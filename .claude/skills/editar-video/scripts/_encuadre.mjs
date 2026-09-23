@@ -14,6 +14,8 @@ export const CARA_MINIMA = 0.06;
 export const CARA_MAXIMA = 0.45;
 /** Y su centro cae en el 80 % del medio, en horizontal. */
 export const MARGEN_LATERAL = 0.1;
+/** Cómo empieza el motivo de un cuadro que Gemini no llegó a leer (lo arma cara.mjs). */
+export const SIN_RESPUESTA = "Gemini no contestó";
 
 const LIENZO = { ancho: ANCHO, alto: ALTO };
 
@@ -76,7 +78,8 @@ function leerCajas(datos) {
 export function medirCuadro(datos, video) {
   const crudas = leerCajas(datos);
   const base = { cajas: crudas };
-  if (!crudas.cara) return { ...base, usado: false, motivo: "sin cara" };
+  const vacia = !crudas.cara || (Array.isArray(crudas.cara) && crudas.cara.length === 0);
+  if (vacia) return { ...base, usado: false, motivo: "sin cara" };
 
   const cara = cajaValida(crudas.cara);
   if (!cara) return { ...base, usado: false, motivo: "caja de la cara inválida" };
@@ -111,12 +114,34 @@ export function medirCuadro(datos, video) {
 }
 
 /**
+ * Un centro que se aparta de la mediana más de media cara no es la persona moviéndose al
+ * hablar: es una lectura mala (se agachó, la visera tapa la cara, leyó otra cosa). Se marca y
+ * no cuenta. Con menos de tres cuadros no hay mediana de la que apartarse, y si el filtro
+ * dejara todo afuera, no se aplica.
+ */
+function sacarLejanos(cuadros) {
+  const usados = cuadros.filter((c) => c.usado);
+  if (usados.length < 3) return cuadros;
+  const centro = mediana(usados.map((c) => c.cy));
+  const limite = mediana(usados.map((c) => c.menton - c.frente)) / 2;
+  const marcados = cuadros.map((c) => {
+    const distancia = c.usado ? c.cy - centro : 0;
+    if (Math.abs(distancia) <= limite) return c;
+    const signo = distancia > 0 ? "+" : "−";
+    return { ...c, usado: false, motivo: `lejos de la mediana (${signo}${Math.round(Math.abs(distancia))} px)` };
+  });
+  return marcados.some((c) => c.usado) ? marcados : cuadros;
+}
+
+/**
  * Todos los cuadros: la mediana de los usados, y los dos números del estilo
  * (`referencias/estilo-visual.md`):
  *   corrimientoSplit = −(cy − 470)
  *   subtitulosFull   = min(1560, cy + (menton − cy) · 1,25 + 120)
+ * Devuelve también `cuadros`, con los lejanos de la mediana marcados como no usados.
  */
-export function resumirEncuadre(cuadros) {
+export function resumirEncuadre(lecturas) {
+  const cuadros = sacarLejanos(lecturas);
   const usados = cuadros.filter((c) => c.usado);
   if (usados.length === 0) {
     const motivos = {};
@@ -124,9 +149,12 @@ export function resumirEncuadre(cuadros) {
     const detalle = Object.entries(motivos)
       .map(([m, n]) => `${n} ${m}`)
       .join(", ");
+    const sinRespuesta = cuadros.length > 0 && cuadros.every((c) => String(c.motivo ?? "").startsWith(SIN_RESPUESTA));
+    const pista = sinRespuesta
+      ? "Gemini no contestó en ningún cuadro: revisar la clave (GEMINI_API_KEY) y la conexión, y probar otra vez."
+      : "Revisar que la persona esté a cámara en el video, y probar con más cuadros (--cuadros 16).";
     throw new Error(
-      `Ningún cuadro trajo una cara utilizable (${cuadros.length} mirados${detalle ? `: ${detalle}` : ""}).\n` +
-        "Revisar que la persona esté a cámara en el video, y probar con más cuadros (--cuadros 16).",
+      `Ningún cuadro trajo una cara utilizable (${cuadros.length} mirados${detalle ? `: ${detalle}` : ""}).\n${pista}`,
     );
   }
 
@@ -155,5 +183,6 @@ export function resumirEncuadre(cuadros) {
     usados: usados.length,
     mirados: cuadros.length,
     avisos,
+    cuadros,
   };
 }

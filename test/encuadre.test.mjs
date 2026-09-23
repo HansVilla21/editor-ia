@@ -15,42 +15,22 @@ const VERTICAL_GRANDE = { ancho: 1440, alto: 2560 };
 // ---------------------------------------------------------------- caja → píxeles
 
 test("una caja 0–1000 pasa a píxeles del video de 1080x1920", () => {
-  assert.deepEqual(cajaAPixeles([375, 250, 500, 750], VERTICAL), {
-    arriba: 720,
-    izquierda: 270,
-    abajo: 960,
-    derecha: 810,
-  });
+  assert.deepEqual(cajaAPixeles([375, 250, 500, 750], VERTICAL), { arriba: 720, izquierda: 270, abajo: 960, derecha: 810 });
 });
 
 test("la misma caja en un video de 1440x2560 cae en sus propios píxeles", () => {
-  assert.deepEqual(cajaAPixeles([375, 250, 500, 750], VERTICAL_GRANDE), {
-    arriba: 960,
-    izquierda: 360,
-    abajo: 1280,
-    derecha: 1080,
-  });
+  assert.deepEqual(cajaAPixeles([375, 250, 500, 750], VERTICAL_GRANDE), { arriba: 960, izquierda: 360, abajo: 1280, derecha: 1080 });
 });
 
 test("los píxeles de un video de 1440x2560 se llevan a la composición de 1080x1920", () => {
   const enVideo = { arriba: 960, izquierda: 360, abajo: 1280, derecha: 1080 };
-  assert.deepEqual(aComposicion(enVideo, VERTICAL_GRANDE), {
-    arriba: 720,
-    izquierda: 270,
-    abajo: 960,
-    derecha: 810,
-  });
+  assert.deepEqual(aComposicion(enVideo, VERTICAL_GRANDE), { arriba: 720, izquierda: 270, abajo: 960, derecha: 810 });
 });
 
 test("un video que no es 9:16 cubre la composición: se escala y se recorta al centro", () => {
   // 1080x1080 → escala 16/9 hasta 1920 de alto; sobran 840 px de ancho, 420 por lado.
   const enVideo = { arriba: 270, izquierda: 405, abajo: 540, derecha: 675 };
-  assert.deepEqual(aComposicion(enVideo, { ancho: 1080, alto: 1080 }), {
-    arriba: 480,
-    izquierda: 300,
-    abajo: 960,
-    derecha: 780,
-  });
+  assert.deepEqual(aComposicion(enVideo, { ancho: 1080, alto: 1080 }), { arriba: 480, izquierda: 300, abajo: 960, derecha: 780 });
 });
 
 // ---------------------------------------------------------------- un cuadro
@@ -90,6 +70,13 @@ test("un cuadro sin cara no se usa", () => {
   assert.equal(medirCuadro([], VERTICAL).usado, false);
   assert.equal(medirCuadro(respuesta(null, [250, 375, 500, 625]), VERTICAL).usado, false);
   assert.equal(medirCuadro(null, VERTICAL).usado, false);
+});
+
+test("una caja de cara vacía cuenta como cuadro sin cara, no como caja inválida", () => {
+  // Así contestó gemini-pro-latest un cuadro donde la visera tapaba la cara.
+  const cuadro = medirCuadro([{ label: "cara", box_2d: [] }, { label: "cabeza", box_2d: [378, 171, 712, 626] }], VERTICAL);
+  assert.equal(cuadro.usado, false);
+  assert.equal(cuadro.motivo, "sin cara");
 });
 
 test("una cara de menos del 6 % del alto del cuadro es absurda y no se usa", () => {
@@ -145,6 +132,24 @@ test("el encuadre es la mediana de los cuadros usados; los descartados no cuenta
   assert.equal(encuadre.mirados, 5);
 });
 
+test("un cuadro que se aparta de la mediana más de media cara no cuenta, y queda marcado", () => {
+  // Caras de 240 px (frente a mentón): el límite es 120 px del centro mediano.
+  // Con el 1070 adentro, la mediana de 4 sería 855 y el mentón 975.
+  const encuadre = resumirEncuadre([
+    bueno(840, 960, 480),
+    bueno(850, 970, 490),
+    bueno(860, 980, 500),
+    bueno(1070, 1190, 720),
+  ]);
+  assert.equal(encuadre.cy, 850);
+  assert.equal(encuadre.menton, 970);
+  assert.equal(encuadre.usados, 3);
+  assert.equal(encuadre.mirados, 4);
+  assert.equal(encuadre.cuadros[3].usado, false);
+  assert.match(encuadre.cuadros[3].motivo, /mediana/);
+  assert.equal(encuadre.cuadros[0].usado, true);
+});
+
 test("del centro y el mentón salen el corrimiento del split y la altura de los subtítulos", () => {
   const encuadre = resumirEncuadre([bueno(850, 1010, 565)]);
   assert.equal(encuadre.corrimientoSplit, -380); // −(850 − 470)
@@ -174,15 +179,19 @@ test("si todos los cuadros se descartan, el error lo dice en castellano y cuenta
   assert.throws(() => resumirEncuadre([]), /ningún cuadro/i);
 });
 
+test("si Gemini no contestó en ningún cuadro, el error apunta a la clave y la conexión, no al video", () => {
+  const caido = descartado("Gemini no contestó: Gemini respondió 400: API key not valid.");
+  assert.throws(
+    () => resumirEncuadre([caido, caido, caido]),
+    (e) => /clave/i.test(e.message) && /conexi/i.test(e.message) && !/a cámara/.test(e.message),
+  );
+});
+
 // ---------------------------------------------------------------- modelos de Gemini
 
 test("sin GEMINI_MODEL, el orden es pro-latest, 2.5-pro y 2.5-flash", () => {
   assert.deepEqual(ordenDeModelos({}), ["gemini-pro-latest", "gemini-2.5-pro", "gemini-2.5-flash"]);
-  assert.deepEqual(ordenDeModelos({ GEMINI_MODEL: "  " }), [
-    "gemini-pro-latest",
-    "gemini-2.5-pro",
-    "gemini-2.5-flash",
-  ]);
+  assert.deepEqual(ordenDeModelos({ GEMINI_MODEL: "  " }), ["gemini-pro-latest", "gemini-2.5-pro", "gemini-2.5-flash"]);
 });
 
 test("con GEMINI_MODEL, ese modelo va primero y no se repite", () => {
