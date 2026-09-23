@@ -131,13 +131,17 @@ export function nuevoVideo({ raiz, slug, fecha = fechaDeHoy() }) {
 
 function pasos(r) {
   const s = ".claude/skills/editar-video/scripts";
+  const filas = [
+    [`${r.carpetaSrc}/`, "la composición: lo único que se edita es datos.ts"],
+    [r.entrada, `la entrada, con los ids ${r.id} y ${r.idPortada}`],
+    [`${r.carpetaPublic}/`, "acá van video.mp4, voz.wav, musica.m4a, portada.png y las capturas"],
+    [`${r.carpetaVideos}/versiones/`, "acá van los renders"],
+  ];
+  const ancho = Math.max(...filas.map(([ruta]) => ruta.length)) + 3;
   return `
 Listo: el video "${r.slug}" tiene su lugar.
 
-  ${r.carpetaSrc}/                      la composición: lo único que se edita es datos.ts
-  ${r.entrada}          la entrada, con los ids ${r.id} y ${r.idPortada}
-  ${r.carpetaPublic}/                   acá van video.mp4, voz.wav, musica.m4a, portada.png y las capturas
-  ${r.carpetaVideos}/versiones/   acá van los renders
+${filas.map(([ruta, que]) => `  ${ruta.padEnd(ancho)}${que}`).join("\n")}
 
 Qué sigue:
   1. Cortar:    node ${s}/cortar.mjs <grabación> ${r.carpetaPublic}/video.mp4 <scratch>/tramos.json
