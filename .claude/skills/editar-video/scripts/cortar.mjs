@@ -29,7 +29,7 @@ const AYUDA = `
 cortar.mjs — corta los silencios y deja el video listo para componer
 
   node .claude/skills/editar-video/scripts/cortar.mjs <entrada> <salida.mp4> <tramos.json> \\
-       [--umbral -36] [--minimo 0.28] [--aire 0.08]
+       [--umbral -36] [--minimo 0.28] [--antes 0.08] [--tras 0.14]
 
 Recibe: la grabación (o el montaje de tomas, si la grabación era cruda).
 Devuelve: <salida.mp4> a 1080x1920 y 30 fps, y <tramos.json> con cada tramo que quedó,
@@ -38,7 +38,10 @@ Devuelve: <salida.mp4> a 1080x1920 y 30 fps, y <tramos.json> con cada tramo que 
 
   --umbral   decibeles por debajo de los cuales es silencio (más alto corta más)
   --minimo   cuánto tiene que durar un silencio para que valga la pena sacarlo
-  --aire     cuánto se deja antes y después de cada frase, para que no suene mocho
+  --antes    cuánto se deja antes de cada frase
+  --tras     cuánto se deja después de cada frase. La cola de una "s" final tiene poca
+             energía, ffmpeg la cuenta como silencio, y con menos de 0.14 se oye mocha
+  --aire X   el atajo de antes: equivale a --antes X --tras max(X, 0.14)
 
 La entrada y la salida pueden ser el mismo archivo: se escribe aparte y recién al final
 se reemplaza.
@@ -55,7 +58,11 @@ if (!entrada || !salidaPedida || !mapaJson) morir("Faltan argumentos. Probá con
 
 const umbral = numero(opciones.umbral, -36);
 const minimo = numero(opciones.minimo, 0.28);
-const aire = numero(opciones.aire, 0.08);
+// --aire es el atajo viejo: el mismo valor a los dos lados, pero después de la palabra nunca
+// menos de 0.14 s, que es donde vive la cola de una "s" final.
+const aire = opciones.aire === undefined ? null : numero(opciones.aire, 0.08);
+const antes = numero(opciones.antes, aire ?? 0.08);
+const tras = numero(opciones.tras, Math.max(aire ?? 0, 0.14));
 
 const info = await sondear(entrada);
 if (!info.audio) morir("La entrada no tiene audio: no hay silencios que detectar.");
@@ -66,14 +73,15 @@ const silencios = await detectarSilencios(entrada, { umbral, minimo, duracion })
 // Lo que se queda es el hueco entre silencios, con aire a los lados.
 // Un pedazo más corto que el aire es puro relleno: pasa cuando la grabación arranca o
 // termina en silencio, y si se cuela mete un jump cut falso en CORTES.
-const minimoTramo = Math.max(0.1, aire + 0.02);
+const minimoTramo = Math.max(0.1, antes + 0.02);
 const bruto = [];
 let t = 0;
 for (const [inicio, fin] of silencios) {
   const a = t;
-  const b = inicio + aire;
-  if (b - a > minimoTramo) bruto.push([Math.max(0, a), Math.min(duracion, b)]);
-  t = Math.max(0, fin - aire);
+  const b = inicio + tras;
+  // Sin sonido entre el silencio anterior y este (la grabación arranca callada) no hay tramo.
+  if (b - a > minimoTramo && inicio > a + antes) bruto.push([Math.max(0, a), Math.min(duracion, b)]);
+  t = Math.max(0, fin - antes);
 }
 if (duracion - t > minimoTramo) bruto.push([t, duracion]);
 
@@ -148,7 +156,8 @@ escribirJson(mapaJson, {
   duracionSalida: Number(finalInfo.duracion.toFixed(3)),
   umbral,
   minimo,
-  aire,
+  antes,
+  tras,
   silencioRestante: Number(porcentaje.toFixed(1)),
   cortes: tabla.map((f) => f.cuadro),
   tramos: tabla,
