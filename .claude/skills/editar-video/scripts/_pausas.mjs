@@ -122,3 +122,9 @@ export function conservar(quitar, duracion) {
   if (duracion - t > 0.05) keep.push([r3(t), r3(duracion)]);
   return keep;
 }
+
+/** Pausas de más de `largo` segundos lejos de los bordes: las que un oído nota como hueco. */
+export const pausasInternas = (pausas, duracion, { largo = 0.35, inicio = 0.3, cola = 0.8 } = {}) =>
+  pausas
+    .filter(([a, b]) => a >= inicio && b <= duracion - cola && b - a > largo)
+    .map(([a, b]) => ({ inicio: r3(a), duracion: r3(b - a) }));

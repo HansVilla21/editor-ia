@@ -148,3 +148,11 @@ test("montar con --tamano 1440x2560 sale a 1440x2560", () => {
   const { ancho, alto } = sondearVideo(video);
   assert.deepEqual([ancho, alto], [1440, 2560]);
 });
+
+test("cortar anota en tramos.json las pausas internas de más de 0,35 s que quedaron", () => {
+  const pausas = segundo.mapa.pausasInternas;
+  assert.equal(pausas?.length, 1, JSON.stringify(pausas));
+  const salidaPausa = SEGUNDO.pausa[0] - (SEGUNDO.primera[0] - 0.05);
+  assert.ok(Math.abs(pausas[0].inicio - salidaPausa) < 0.05, `empieza en ${pausas[0].inicio}`);
+  assert.ok(Math.abs(pausas[0].duracion - 0.5) < 0.05, `dura ${pausas[0].duracion}`);
+});

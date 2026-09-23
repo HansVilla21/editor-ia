@@ -20,6 +20,7 @@ import {
   cuadroDe,
 } from "./_comun.mjs";
 import { empalmar, leerTamano } from "./_empalmar.mjs";
+import { medirTramas, detectarPausas, pausasInternas } from "./_pausas.mjs";
 
 const AYUDA = `
 cortar.mjs — corta los silencios y deja el video listo para componer
@@ -30,8 +31,8 @@ cortar.mjs — corta los silencios y deja el video listo para componer
 
 Recibe: la grabación (o el montaje de tomas, si la grabación era cruda).
 Devuelve: <salida.mp4> a 30 fps y 1080x1920 (o --tamano), y <tramos.json> con cada tramo
-          que quedó: sus segundos en el original, dónde cae en la salida y en qué cuadro empieza.
-          Esos cuadros son los CORTES: los jump cuts del zoom alterno.
+          que quedó: sus segundos en el original, dónde cae en la salida y en qué cuadro
+          empieza. Esos cuadros son los CORTES: los jump cuts del zoom alterno.
 
   --umbral   decibeles por debajo de los cuales es silencio (más alto corta más)
   --minimo   cuánto tiene que durar un silencio para que valga la pena sacarlo
@@ -55,9 +56,11 @@ Devuelve: <salida.mp4> a 30 fps y 1080x1920 (o --tamano), y <tramos.json> con ca
 La entrada y la salida pueden ser el mismo archivo: se escribe aparte y recién al final
 se reemplaza.
 
-Verificación: al terminar imprime el silencio que queda. Tiene que ser 5 % o menos.
-Si queda alto, hay ruido de sala por encima del umbral: subirlo de a 2 dB y volver a medir.
-Nunca bajar --minimo por debajo de 0.20: se come los finales suaves.
+Verificación: al terminar lista las pausas internas de más de 0,35 s que quedaron en la salida
+(segundo y duración; también en <tramos.json>, en "pausasInternas"). El ruido de sala de un
+teléfono queda por debajo de este corte y esas respiraciones siguen ahí: las saca apretar.mjs.
+Si quedan muchas y largas, hay ruido de sala por encima del umbral: subirlo de a 2 dB y volver
+a cortar. Nunca bajar --minimo por debajo de 0.20: se come los finales suaves.
 `;
 
 ayuda(process.argv, AYUDA);
@@ -174,14 +177,10 @@ const tabla = tramos.map(([a, b]) => {
   return fila;
 });
 
+// Lo que queda para la segunda pasada: pausas que ffmpeg no ve porque el ruido de sala está por
+// encima del umbral de pico, pero que se oyen como huecos.
 const finalInfo = await sondear(salidaPedida);
-const silenciosFinales = await detectarSilencios(salidaPedida, {
-  umbral,
-  minimo,
-  duracion: finalInfo.duracion,
-});
-const silencioRestante = silenciosFinales.reduce((s, [a, b]) => s + (b - a), 0);
-const porcentaje = (100 * silencioRestante) / Math.max(0.001, finalInfo.duracion);
+const pausas = pausasInternas(detectarPausas(await medirTramas(salidaPedida)), finalInfo.duracion);
 
 escribirJson(mapaJson, {
   origen: entrada,
@@ -194,10 +193,10 @@ escribirJson(mapaJson, {
   tramoMinimo,
   cola,
   tamano: `${tamano.ancho}x${tamano.alto}`,
-  silencioRestante: Number(porcentaje.toFixed(1)),
   cortes: tabla.map((f) => f.cuadro),
   tramos: tabla,
   descartados,
+  pausasInternas: pausas,
 });
 
 console.log(`${tramos.length} tramos: ${fijo(duracion)} s -> ${fijo(finalInfo.duracion)} s (${fijo(100 * (1 - finalInfo.duracion / duracion), 1)} % recortado)`);
@@ -207,10 +206,10 @@ if (descartados.length) {
   const lista = descartados.map((d) => `${fijo(d.inicio)} s (${fijo(d.fin - d.inicio)} s)`).join(", ");
   console.log(`${descartados.length} sonidos sin voz descartados (clics, monedas, respiraciones): ${lista}`);
 }
-console.log(`silencio restante: ${fijo(porcentaje, 1)} %`);
-
-if (porcentaje > 5) {
-  console.log("");
-  console.log("aviso  Pasa el 5 %. Hay ruido de sala por encima del umbral.");
-  console.log(`       Probá --umbral ${umbral + 2} y volvé a medir. No bajes --minimo de 0.20.`);
+if (pausas.length === 0) {
+  console.log("no quedan pausas internas de más de 0,35 s");
+} else {
+  const lista = pausas.map((p) => `${fijo(p.inicio)} s (${fijo(p.duracion)} s)`).join(", ");
+  console.log(`quedan ${pausas.length} pausas internas de más de 0,35 s: ${lista}`);
+  console.log("       Las saca apretar.mjs, la segunda pasada.");
 }
