@@ -86,19 +86,19 @@ de cada línea y que el resultado suene corrido.
    frases, nunca en medio de una.
    Estos cortes **no van a `CORTES`**: caen entre frases, el salto no se ve, y un cambio de zoom
    por segundo pone la toma nerviosa. Pero los `CORTES` de `tramos.json` están medidos antes de
-   apretar, así que se corren: a cada uno restale lo quitado antes de él, y si cae dentro de un
-   tramo quitado, llevalo al inicio de ese tramo:
-   `nuevo = viejo − Σ max(0, min(b, viejo) − a)`, sumando sobre los `[a, b]` de `quitados`.
+   apretar, así que se corren. No se hace a mano: el paso 10 los saca con `cortes.mjs`.
 
 9. **Acelerar, solo si la persona lo pide.** Hay quien prefiere sus videos un poco más rápidos
    (1,1x es lo común). Es su decisión, no la del editor: preguntale una vez y anotá la respuesta en
    `memory/`. Si no dice nada, no se acelera.
    `acelerar.mjs public/<slug>/video.mp4 public/<slug>/video.mp4 1.1` — la voz no cambia de tono y
    el video queda a 30 fps. **Todos los tiempos cambian**: cualquier número medido antes (palabras,
-   segundos de un gráfico) ya no sirve. Los `CORTES` se dividen por la velocidad.
+   segundos de un gráfico) ya no sirve.
 
 10. **Transcribir el archivo final y verificar.** Siempre el que salió del último paso (acelerado,
-    si se aceleró), nunca uno anterior: los subtítulos, los `CORTES` y los cues salen de acá.
+    si se aceleró), nunca uno anterior: los subtítulos y los cues salen de acá. Los `CORTES` salen
+    de `cortes.mjs tramos.json --quitados <scratch>/quitados.json [--velocidad 1.1]`, que imprime
+    la línea lista para `datos.ts` ya corrida por lo que sacó apretar y por la velocidad.
     Leerlo contra la secuencia esperada: ninguna frase dos veces, ninguna palabra partida. Si la
     transcripción escribe un final raro, no tocar nada todavía: comparar la forma de onda del crudo
     y la del corte con `energia.mjs`. Suele ser un error de transcripción y no un corte mal puesto.
@@ -111,8 +111,7 @@ de cada línea y que el resultado suene corrido.
 
 Un video que termina justo en la última sílaba se siente cortado; uno que congela el último cuadro
 para sostener el cierre se siente trabado, como si la persona se hubiera quedado pegada. Lo que
-funciona es
-terminar sobre **toma real**:
+funciona es terminar sobre **toma real**:
 
 - En la EDL, la última pieza termina **1,3 s después de la última palabra**. Casi siempre la
   persona se queda mirando a cámara o sonríe antes de cortar la grabación: ese es el cierre.
