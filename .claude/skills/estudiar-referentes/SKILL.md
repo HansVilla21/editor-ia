@@ -1,6 +1,6 @@
 ---
 name: estudiar-referentes
-description: Usar cuando el usuario pasa enlaces o archivos de videos de otros creadores como ejemplo de la edición que quiere — "mirá este video", "quiero que se vea así", "este es mi referente", "me gusta cómo edita", "analizá estas transiciones", "entrená el estilo con esto" — o cuando hay que revisar, ampliar o cambiar el estilo con el que edita el proyecto. También cuando hay que decidir si un recurso visual se copia y cómo se fabrica en Remotion.
+description: Usar cuando el usuario pasa enlaces o archivos de videos de otros creadores como ejemplo de la edición que quiere — "mirá este video", "quiero que se vea así", "este es mi referente", "me gusta cómo edita", "analizá estas transiciones", "entrená el estilo con esto" — o para escribir un guion a partir de ellos o de un tema — "ayudame con el guion", "quiero grabar sobre esto", "vos sos el experto", "lo grabo hoy". También cuando hay que revisar, ampliar o cambiar el estilo con el que edita el proyecto, o decidir si un recurso visual se copia y cómo se fabrica en Remotion.
 ---
 
 # Estudiar videos de referencia
@@ -8,6 +8,10 @@ description: Usar cuando el usuario pasa enlaces o archivos de videos de otros c
 Así aprende el editor. El usuario señala videos que admira, cada uno se mide cuadro a
 cuadro, y los valores que él aprueba pasan a ser su estilo. No es un informe suelto: el
 ciclo termina escribiendo en `.claude/skills/editar-video/referencias/`.
+
+Hay un segundo modo, más corto: cuando los videos no vienen para copiar la edición sino
+las palabras, y lo que sale es un guion listo para grabar. Está al final, en "Cuando los
+referentes son para escribir un guion".
 
 ## Los dos principios
 
@@ -45,6 +49,16 @@ FFPROBE=$(node -e "console.log(require('@ffprobe-installer/ffprobe').path)")
 Las rutas tienen espacios: siempre entre comillas. En PowerShell es `$FF = node -e "..."`.
 El `drawtext` de ffmpeg no está garantizado en el binario de npm, así que **no se rotulan
 los cuadros**: la posición en la hoja ya dice el tiempo, como se explica abajo.
+
+**El borrador de Gemini**, que ubica en uno a tres minutos qué mirar y en qué segundo:
+
+```bash
+node .claude/skills/estudiar-referentes/scripts/borrador.mjs "referencias/<archivo>.mp4" \
+  "referencias/estudio/<slug>/borrador.md" --enfoque "<lo que le gusta a la persona, textual>"
+```
+
+Sale marcado como BORRADOR SIN VERIFICAR, con cada tiempo aproximado y los cuadros para
+verificarlo. Necesita la clave de Gemini; sin ella, todo el flujo funciona igual, más lento.
 
 ## El flujo
 
@@ -131,7 +145,8 @@ uno se le pasa:
 - el tope de tiempo: 25 a 35 minutos por agente.
 
 El informe sale en `referencias/estudio/<slug>.md` y hasta ocho cuadros clave en
-`referencias/estudio/<slug>/`.
+`referencias/estudio/<slug>/`. Cada agente empieza por el borrador de Gemini, si hay clave,
+y lo deja en esa misma carpeta.
 
 ### 5. Resumir cada informe al llegar
 
@@ -167,6 +182,90 @@ cosas que después no se pueden hacer.
 Cada gráfico del informe lleva su letra y la evidencia de por qué es esa y no otra. Un
 recurso B mal clasificado como A hace perder una tarde.
 
+## Cuando los referentes son para escribir un guion
+
+A veces los videos no vienen para copiar la edición sino las palabras: "ayudame con el
+guion", "quiero grabar sobre esto, como hace este", "vos sos el experto, lo grabo hoy". Acá
+no se mide cuadro a cuadro ni se toca el estilo: se estudia cómo enganchan y en qué orden
+cuentan, y sale un guion listo para grabar. El ritual es **`/guion`**; esto es el método.
+Funciona igual sin referentes: la forma de abajo no depende de ninguno.
+
+### 1. Estudio corto, centrado en la palabra
+
+Hasta tres referentes. Cada uno se consigue como en el paso 2 del flujo; si no baja, se
+pide el archivo una vez y se sigue con los demás, o sin ninguno. Por cada uno:
+
+- el borrador, en `referencias/estudio/guion-<slug>/<referente>-borrador.md`, con
+  `--enfoque "el gancho y el orden en que cuenta: para escribir un guion"` más lo que la
+  persona dijo que le gusta de él. Sin clave: la hoja de contacto y, si Whisper está
+  instalado, `transcribir.mjs` para oír el gancho;
+- una tabla segundo → qué dice, resumido → función (gancho, problema, prueba, solución,
+  giro, cierre);
+- qué funciona y qué no se copia. **El gancho literal de otro es suyo, y sus cifras
+  también:** se aprende la forma, no las frases.
+
+Un solo informe para el lote, en `referencias/estudio/guion-<slug>.md`. Sin el agente
+analista: acá no hay valores de edición que medir.
+
+### 2. La forma
+
+Seis tramos, en este orden:
+
+1. **Gancho con prueba visual en el primer segundo.** El resultado se ve antes de
+   explicarlo, y arriba va el titular fijo: de 3 a 7 palabras, que se leen en un segundo.
+2. **El problema**, dicho como lo vive quien mira: algo que reconoce de su semana.
+3. **Qué hace la persona:** su forma de resolverlo, en primera persona.
+4. **Qué hace la herramienta, con números reales:** cuánto tarda, cuánto cuesta, cuántos.
+   Solo los verificados; si no hay ninguno, un paso concreto que se ve en pantalla.
+5. **Un giro propio:** algo que solo esa persona tiene o vivió —una anécdota, un error, un
+   resultado que no esperaba—. Es lo que hace que el video no sea intercambiable. Si no contó
+   nada, una opinión suya sobre el tema, nunca una anécdota inventada.
+6. **El cierre:** pedir que comenten una palabra a cambio de algo, o un cierre sin pedido.
+
+Frases cortas, una idea por frase y una frase por línea, con las palabras y el trato con que
+habla la persona (de dónde sale cada pista, en `/guion`). Entre 110 y 130 palabras: a unas
+2,7 palabras por segundo, que es un ritmo normal hablando, son de 40 a 48 segundos.
+
+### 3. Que se entienda fácil
+
+Leer cada frase como alguien que no sabe del tema y la oye una sola vez, con el pulgar listo
+para pasar al siguiente video. Afuera la jerga, las siglas sin explicar y los nombres
+largos: "el repositorio usuario/herramienta-pro-v2" pasa a "un repositorio de GitHub". El
+nombre de la herramienta se queda si es el tema del video. Si una frase hay que leerla dos
+veces, se reescribe.
+
+### 4. Nada inventado
+
+Toda cifra y todo dato que el guion afirma —precios, tiempos, cantidades, fechas, "diez
+veces más rápido"— queda en una de dos:
+
+- **verificado**, con la fuente al lado: un enlace oficial con su fecha, un archivo de la
+  persona, una medición;
+- **a confirmar**, con una frase de repuesto sin el número, que es la que se graba si nadie
+  lo confirma.
+
+Las cifras propias de la persona ("me ahorra tres horas por semana") quedan a confirmar
+hasta que ella las diga. Las de los referentes no se usan. Lo que no se sabe de su sistema
+(con qué herramienta lo hace, cuánto tarda) no se inventa ni se pregunta: la frase se
+escribe sin eso, se entiende igual, y el dato queda como **opcional**, lo que mejoraría el
+guion si lo cuenta. Y la prueba visual es real: una captura o grabación de su sistema, con
+los datos de terceros tapados; nunca una pantalla armada.
+
+### 5. El entregable
+
+`videos/<fecha>-<slug>/guion.md`, con el slug que después se usa para editar (minúsculas,
+números y guiones): el titular, el guion a una frase por línea —tal cual lo usa `tomas.mjs`
+para elegir las tomas—, el plan visual con material que ya existe o se puede capturar, los
+datos con su estado, y los consejos para grabar, que remiten a `/antes-de-grabar`. La
+plantilla está en `/guion`.
+
+### 6. Una sola pregunta
+
+Lo único que se le pregunta a la persona es **qué recibe quien comenta la palabra del
+cierre**. Todo lo demás se propone con un valor por defecto: la palabra, el titular, el
+largo. Lo que queda a confirmar no se pregunta uno por uno: va en una lista al final del
+guion, cada cosa con su repuesto. Si no quiere cierre con palabra, no hay pregunta.
+
 ## Errores comunes
 
 - Creerle al borrador del modelo los fps, las tipografías, los colores, el texto en
@@ -178,3 +277,8 @@ recurso B mal clasificado como A hace perder una tarde.
   afirma con un número de cuadro se mira en una tira de cuadros consecutivos.
 - Analizar más de tres o cuatro referencias de una. El estilo se vuelve un promedio sin
   carácter, que es exactamente lo que este ciclo existe para evitar.
+- En un guion, copiar el gancho de un referente palabra por palabra, o usar sus cifras
+  como si fueran de la persona.
+- Frenar el guion esperando referentes que no llegan. La forma funciona sin ellos.
+- Llenar un hueco con un dato que suena bien. Lo que no se sabe va a confirmar, con su frase
+  de repuesto.
