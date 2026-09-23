@@ -1,7 +1,7 @@
 # memory/ — lo que el editor aprendió de vos
 
-Esta carpeta es la memoria del editor. Viene vacía: lo que se escribe acá sale de tus
-respuestas y de tus correcciones, y es tuyo.
+Esta carpeta es la memoria del editor. Viene con plantillas vacías: lo que se escribe acá
+sale de tus respuestas y de tus correcciones, y es tuyo.
 
 Con esto el editor mejora video a video: lo que le dijiste una vez no te lo vuelve a
 preguntar, y lo que corregiste una vez no lo vuelve a hacer mal.
@@ -12,7 +12,7 @@ preguntar, y lo que corregiste una vez no lo vuelve a hacer mal.
 |---|---|---|
 | `preferencias.md` | Cómo querés tus videos: plataforma, ritmo, subtítulos, música, portada, cómo termina, logos | Claude, con tus respuestas: en `/arrancar`, en `/calibrar` y cuando cambiás de idea |
 | `reglas.md` | Cada corrección que pediste "para siempre", convertida en una regla | Claude, cuando corregís algo de un video y decís que va para todos |
-| `decisiones.md` | La historia: qué música se usó en cada video, qué umbrales de corte funcionaron, qué estilo se estudió y qué se descartó | Claude, al entregar cada video y al terminar `/estudiar` |
+| `decisiones.md` | La historia: qué música se usó en cada video, qué umbrales de corte funcionaron, qué estilo se estudió y qué se descartó | Claude, al entregar cada video, al terminar `/estudiar` y al terminar `/calibrar` |
 
 Tus colores, tipografías y logo no van acá: van en `.claude/skills/mi-marca/SKILL.md`.
 

@@ -5,14 +5,15 @@
 > que no gustó, un candidato de estilo que ya se descartó, umbrales que ya se probaron.
 >
 > - Una línea por cosa, en su sección, la más nueva abajo. Con fecha y con el slug del video.
-> - Se agrega; no se reescribe lo anterior. Si algo cambió, una línea nueva que lo diga.
+> - Se agrega; lo de videos anteriores no se reescribe. La línea del video en curso sí se
+>   completa, en el mismo renglón, si después de entregarlo hay versiones nuevas.
 > - Las líneas entre `<!-- -->` son ejemplos de la forma, no datos: se dejan como están.
 > - En la fase 1 de cada video se leen **Música** y **Umbrales de corte**. **Estilo** se lee
 >   antes de proponer candidatos en `/estudiar`.
 
 ## Videos
 
-Uno por entrega: duración, música, portada y lo que la persona pidió cambiar.
+Uno por video: duración, música, portada y lo que la persona pidió cambiar.
 
 <!-- - 2026-09-24 · `mi-video` · 42 s · música Mixkit 123 · portada: cuadro 14,2 s, mirando al lente, composición de la plantilla · cambios: subtítulos más grandes (v2) -->
 
@@ -21,7 +22,8 @@ Uno por entrega: duración, música, portada y lo que la persona pidió cambiar.
 Cada pista usada o descartada, para no repetirla ni volver a proponer la que no gustó.
 
 <!-- - Mixkit 123 "Título de la pista" · arranque 12,4 s · usada en `mi-video` (2026-09-24) · aprobada -->
-<!-- - Mixkit 456 "Otra pista" · descartada en `mi-video`: "muy electrónica" -->
+<!-- - Mixkit 456 "Otra pista" · ofrecida como opción B en `mi-video` (2026-09-24) -->
+<!-- - Mixkit 789 "Otra más" · descartada en `mi-video`: "muy electrónica" -->
 
 ## Umbrales de corte
 

@@ -2,9 +2,9 @@
 description: Consejos cortos para grabar de forma que el editor saque lo mejor de tu grabación.
 ---
 
-Pasale a la persona estos consejos, tal cual y en un solo mensaje. Son pocos a propósito: cada uno le ahorra un problema concreto al editor.
+Pasale a la persona estos consejos, tal cual y en un solo mensaje. Son pocos a propósito: cada uno le ahorra un problema concreto al editor. Están escritos de vos; si la persona te escribe de tú o de usted, pasáselos en su trato.
 
-Si `memory/preferencias.md` dice que la portada va siempre mirando al lente, subrayá el 4. Si dice que los subtítulos son de otro color que el blanco, sacá la parte de la ropa del 7.
+Si en `memory/preferencias.md` la línea de la mirada de "Portada" dice siempre al lente, subrayá el 4. Si el texto principal de `.claude/skills/mi-marca/SKILL.md` (sección 1) no es blanco, sacá la parte de la ropa del 7.
 
 > **Antes de grabar**
 >

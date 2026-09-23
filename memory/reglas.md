@@ -27,7 +27,7 @@ Formato:
 ```markdown
 ## 2026-09-24 — Más aire al final de cada frase
 
-**Qué pasó:** "la s de frases quedó mocha" (video `mi-video`, v2).
+**Qué pasó:** "la s de frases quedó mocha" (video `mi-video`, al ver la v1).
 **Regla:** dejar 0,18 s después de cada frase al cortar, y 0,16 s al apretar.
 **Dónde se aplica:** fase 2: `cortar.mjs … --tras 0.18` y `apretar.mjs … --tras 0.16`.
 ```
