@@ -28,8 +28,10 @@ de cada línea y que el resultado suene corrido.
 
 2. **Mapa de intentos.**
    `tomas.mjs <crudo> guion.txt <scratch>/tomas.json`, con el guion a una frase por línea. Si la
-   persona no pasó el guion, pedírselo: sin él no hay contra qué comparar los intentos. Devuelve cada intento con si está completo, si está fluido, cuál es el problema y una
-   recomendación. **Sus tiempos son aproximados** y a veces confunde una pausa a mitad de frase con
+   persona no pasó el guion, pedírselo: sin él no hay contra qué comparar los intentos. Devuelve
+   cada intento con si está completo, si está fluido, cuál es el problema y una recomendación, y
+   avisa en pantalla las líneas que no se grabaron y lo dicho fuera del guion: eso se le pregunta a
+   la persona antes de armar la EDL. **Sus tiempos son aproximados** y a veces confunde una pausa a mitad de frase con
    un intento cortado: sirve para saber qué buscar, no para cortar.
 
 3. **Tramos de voz.**
