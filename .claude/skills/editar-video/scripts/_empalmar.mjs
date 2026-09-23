@@ -6,7 +6,7 @@
 import { renameSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { ffmpeg, temporal, mismoArchivo, vecinoTemporal, asegurarCarpeta, morir, ANCHO, ALTO } from "./_comun.mjs";
+import { ffmpeg, temporal, mismoArchivo, vecinoTemporal, asegurarCarpeta, morir, ANCHO, ALTO, FPS } from "./_comun.mjs";
 
 /**
  * "1440x2560" -> {ancho: 1440, alto: 2560}. Sin valor, el formato del proyecto (1080x1920).
@@ -27,22 +27,56 @@ export function leerTamano(texto) {
 export const encuadrar = ({ ancho, alto }) =>
   `scale=${ancho}:${alto}:force_original_aspect_ratio=increase,crop=${ancho}:${alto},setsar=1`;
 
+/** Un segundo llevado al cuadro de 30 fps más cercano. */
+export const alCuadro = (s) => Math.round(Number(s) * FPS) / FPS;
+
 /**
- * Escribe <salida> con los pedazos [desde, hasta] (segundos de <entrada>) uno detrás del otro.
- * Con `tamano` además lo lleva a 30 fps y a ese tamaño; sin él, respeta el del archivo.
+ * Los pedazos con sus bordes en la grilla de 30 fps, sin los que quedan vacíos.
+ * Con los bordes sueltos, cada pedazo sale un cuadro más largo de lo que dice el mapa, y al final
+ * del video los CORTES caen 3 o 4 cuadros antes que el salto de la imagen.
+ */
+export const cuadricular = (pedazos) =>
+  pedazos.map(([a, b]) => [alCuadro(a), alCuadro(b)]).filter(([a, b]) => Math.round((b - a) * FPS) >= 1);
+
+/**
+ * Los filtros de un pedazo: video a 30 fps con exactamente round((b − a) · 30) cuadros, y audio
+ * de esa misma duración, con fundidos de 12 ms. `recortar: false` cuando el pedazo ya viene
+ * recortado desde la lectura del archivo (montar.mjs).
+ */
+export function filtrosDePedazo(i, entrada, a, b, { tamano = null, recortar = true } = {}) {
+  const cuadros = Math.round((b - a) * FPS);
+  const dura = (cuadros / FPS).toFixed(4);
+  const fundido = Math.min(0.012, cuadros / FPS / 4);
+  const tv = recortar ? `trim=start=${a}:end=${b},` : "";
+  const ta = recortar ? `atrim=start=${a}:end=${b},` : "";
+  const forma = tamano ? `,${encuadrar(tamano)}` : "";
+  return {
+    cuadros,
+    video:
+      `[${entrada}:v]${tv}setpts=PTS-STARTPTS,fps=${FPS}${forma},` +
+      `tpad=stop_mode=clone:stop=2,trim=end_frame=${cuadros},setpts=PTS-STARTPTS[v${i}]`,
+    audio:
+      `[${entrada}:a]${ta}asetpts=PTS-STARTPTS,aresample=48000,` +
+      `afade=t=in:d=${fundido},afade=t=out:st=${(cuadros / FPS - fundido).toFixed(4)}:d=${fundido},` +
+      `apad=whole_dur=${dura},atrim=end=${dura}[a${i}]`,
+  };
+}
+
+/**
+ * Escribe <salida> con los pedazos [desde, hasta] (segundos de <entrada>) uno detrás del otro,
+ * siempre a 30 fps, con los bordes llevados a la grilla de cuadros. Con `tamano` además lo lleva
+ * a ese tamaño; sin él, respeta el del archivo. Devuelve los pedazos tal como quedaron escritos:
+ * los mapas se arman con esos, no con los pedidos.
  * La entrada y la salida pueden ser el mismo archivo: se escribe aparte y se reemplaza al final.
  */
-export async function empalmar(entrada, salidaPedida, pedazos, { tamano = null } = {}) {
+export async function empalmar(entrada, salidaPedida, pedazosPedidos, { tamano = null } = {}) {
+  const pedazos = cuadricular(pedazosPedidos);
+  if (pedazos.length === 0) morir("No quedó ningún pedazo de al menos un cuadro para pegar.");
   const partes = [];
   const uniones = [];
   pedazos.forEach(([a, b], i) => {
-    const fundido = Math.min(0.012, (b - a) / 4);
-    const video = tamano ? `,fps=30,${encuadrar(tamano)}` : "";
-    partes.push(`[0:v]trim=start=${a}:end=${b},setpts=PTS-STARTPTS${video}[v${i}]`);
-    partes.push(
-      `[0:a]atrim=start=${a}:end=${b},asetpts=PTS-STARTPTS,aresample=48000,` +
-        `afade=t=in:d=${fundido},afade=t=out:st=${(b - a - fundido).toFixed(4)}:d=${fundido}[a${i}]`,
-    );
+    const { video, audio } = filtrosDePedazo(i, 0, a, b, { tamano });
+    partes.push(video, audio);
     uniones.push(`[v${i}][a${i}]`);
   });
   const grafo = `${partes.join(";\n")};\n${uniones.join("")}concat=n=${pedazos.length}:v=1:a=1[v][a]`;
@@ -66,4 +100,5 @@ export async function empalmar(entrada, salidaPedida, pedazos, { tamano = null }
   ]);
 
   if (enElLugar) renameSync(salida, resolve(salidaPedida));
+  return pedazos;
 }

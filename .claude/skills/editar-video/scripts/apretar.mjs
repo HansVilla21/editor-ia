@@ -20,7 +20,7 @@ import {
   fijo,
 } from "./_comun.mjs";
 import { medirTramas, detectarPausas, elegirQuitados, conservar } from "./_pausas.mjs";
-import { empalmar } from "./_empalmar.mjs";
+import { empalmar, cuadricular } from "./_empalmar.mjs";
 
 const AYUDA = `
 apretar.mjs — segunda pasada: saca las pausas que el corte deja (respiraciones, aire muerto)
@@ -80,21 +80,27 @@ if (!info.audio) morir("La entrada no tiene audio: no hay pausas que medir.");
 const duracion = info.duracion;
 
 const pausas = detectarPausas(await medirTramas(entrada), { hondo, borde, nucleo });
-const quitados = elegirQuitados(pausas, duracion, { minimo, tras, antes });
+// En la grilla de 30 fps: así lo que dice el mapa es exactamente lo que pierde el video, cuadro
+// por cuadro, y los CORTES que se corren con cortes.mjs caen en el salto real.
+const quitados = cuadricular(elegirQuitados(pausas, duracion, { minimo, tras, antes })).map(([a, b]) => [
+  Number(a.toFixed(4)),
+  Number(b.toFixed(4)),
+]);
 const quitado = quitados.reduce((s, [a, b]) => s + (b - a), 0);
 
 for (const [a, b] of quitados) console.log(`  ${fijo(a).padStart(6)} - ${fijo(b).padStart(6)}   -${fijo(b - a)} s`);
 console.log(`${quitados.length} ${quitados.length === 1 ? "hueco" : "huecos"}, -${fijo(quitado)} s -> ${fijo(duracion - quitado)} s`);
 if (soloMapa) process.exit(0);
 
-const keep = conservar(quitados, duracion);
+let keep = conservar(quitados, duracion);
 if (quitados.length === 0) {
   // Nada que sacar: el video queda como estaba, sin volver a comprimirlo.
   asegurarCarpeta(salida);
   if (!mismoArchivo(entrada, salida)) copyFileSync(resolve(entrada), resolve(salida));
 } else {
-  await empalmar(entrada, salida, keep);
+  keep = (await empalmar(entrada, salida, keep)).map(([a, b]) => [Number(a.toFixed(4)), Number(b.toFixed(4))]);
 }
+const despues = quitados.length === 0 ? duracion : keep.reduce((s, [a, b]) => s + Math.round((b - a) * 30), 0) / 30;
 
 escribirJson(mapaJson, {
   origen: entrada,
@@ -103,7 +109,7 @@ escribirJson(mapaJson, {
   quitados,
   keep,
   duracionAntes: Number(duracion.toFixed(3)),
-  duracionDespues: Number((duracion - quitado).toFixed(3)),
+  duracionDespues: Number(despues.toFixed(3)),
 });
 
 console.log(`video en ${corta(salida)}`);

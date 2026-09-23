@@ -17,7 +17,6 @@ import {
   escribirJson,
   corta,
   fijo,
-  cuadroDe,
 } from "./_comun.mjs";
 import { empalmar, leerTamano } from "./_empalmar.mjs";
 import { medirTramas, detectarPausas, pausasInternas, percentil } from "./_pausas.mjs";
@@ -170,17 +169,19 @@ for (const [a, b] of bruto) {
   }
 }
 
-await empalmar(entrada, salidaPedida, tramos, { tamano });
+const escritos = await empalmar(entrada, salidaPedida, tramos, { tamano });
 
-let acumulado = 0;
-const tabla = tramos.map(([a, b]) => {
+// El mapa sale de los pedazos tal como se escribieron (con los bordes en la grilla de 30 fps),
+// contado en cuadros enteros: así cada inicio cae en el cuadro exacto del salto.
+let enCuadros = 0;
+const tabla = escritos.map(([a, b]) => {
   const fila = {
-    inicioOrigen: Number(a.toFixed(3)),
-    finOrigen: Number(b.toFixed(3)),
-    inicioSalida: Number(acumulado.toFixed(3)),
-    cuadro: cuadroDe(acumulado),
+    inicioOrigen: Number(a.toFixed(4)),
+    finOrigen: Number(b.toFixed(4)),
+    inicioSalida: Number((enCuadros / 30).toFixed(4)),
+    cuadro: enCuadros,
   };
-  acumulado += b - a;
+  enCuadros += Math.round((b - a) * 30);
   return fila;
 });
 

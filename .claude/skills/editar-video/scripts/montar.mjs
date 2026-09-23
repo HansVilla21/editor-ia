@@ -14,11 +14,10 @@ import {
   temporal,
   corta,
   fijo,
-  cuadroDe,
   sondear,
   asegurarCarpeta,
 } from "./_comun.mjs";
-import { leerTamano, encuadrar } from "./_empalmar.mjs";
+import { leerTamano, alCuadro, filtrosDePedazo } from "./_empalmar.mjs";
 
 const AYUDA = `
 montar.mjs — pega las tomas elegidas del crudo en un video de 1080x1920 a 30 fps
@@ -39,7 +38,7 @@ Devuelve: <salida.mp4> con las tomas pegadas, y <montaje.json> con dónde cayó 
              cortar.mjs: si no, el corte lo vuelve a bajar a 1080x1920.
 
 Después de montar hay que cortar las pausas sobre el montaje, no sobre el crudo:
-  cortar.mjs <salida.mp4> <salida.mp4> tramos.json --umbral -33 --minimo 0.24 --aire 0.10
+  cortar.mjs <salida.mp4> <salida.mp4> tramos.json --umbral -33 --minimo 0.24
 `;
 
 ayuda(process.argv, AYUDA);
@@ -63,7 +62,11 @@ const tomas = edl.map((p, i) => {
   if (!Number.isFinite(desde) || !Number.isFinite(hasta) || hasta <= desde) {
     morir(`La toma ${i + 1} de la EDL no tiene un rango válido (desde ${p.desde ?? p.in}, hasta ${p.hasta ?? p.out}).`);
   }
-  return { desde, hasta, nota: p.nota ?? "" };
+  // Los bordes van a la grilla de 30 fps: así cada toma tiene exactamente los cuadros que dice
+  // el mapa, y las costuras caen en el cuadro que después usan los CORTES.
+  const [a, b] = [alCuadro(desde), alCuadro(hasta)];
+  if (Math.round((b - a) * 30) < 1) morir(`La toma ${i + 1} de la EDL dura menos de un cuadro.`);
+  return { desde: a, hasta: b, nota: p.nota ?? "" };
 });
 
 const info = await sondear(crudo);
@@ -81,16 +84,10 @@ const entradas = [];
 const partes = [];
 const uniones = [];
 tomas.forEach(({ desde, hasta }, i) => {
-  const duracion = hasta - desde;
-  const fundido = Math.min(0.012, duracion / 4);
-  entradas.push("-ss", String(desde), "-t", String(duracion.toFixed(4)), "-i", crudo);
-  partes.push(
-    `[${i}:v]fps=30,${encuadrar(tamano)},setpts=PTS-STARTPTS[v${i}]`,
-  );
-  partes.push(
-    `[${i}:a]aresample=48000,asetpts=PTS-STARTPTS,` +
-      `afade=t=in:d=${fundido},afade=t=out:st=${(duracion - fundido).toFixed(4)}:d=${fundido}[a${i}]`,
-  );
+  // Se lee un poco de más (0,1 s): los filtros dejan exactamente los cuadros de la toma.
+  entradas.push("-ss", String(desde), "-t", String((hasta - desde + 0.1).toFixed(4)), "-i", crudo);
+  const { video, audio } = filtrosDePedazo(i, i, 0, hasta - desde, { tamano, recortar: false });
+  partes.push(video, audio);
   uniones.push(`[v${i}][a${i}]`);
 });
 
@@ -112,18 +109,19 @@ await ffmpeg([
   salida,
 ]);
 
-let acumulado = 0;
+let enCuadros = 0;
 const tabla = tomas.map(({ desde, hasta, nota }) => {
   const fila = {
-    crudoDesde: Number(desde.toFixed(3)),
-    crudoHasta: Number(hasta.toFixed(3)),
-    inicioSalida: Number(acumulado.toFixed(3)),
-    cuadro: cuadroDe(acumulado),
+    crudoDesde: Number(desde.toFixed(4)),
+    crudoHasta: Number(hasta.toFixed(4)),
+    inicioSalida: Number((enCuadros / 30).toFixed(4)),
+    cuadro: enCuadros,
     nota,
   };
-  acumulado += hasta - desde;
+  enCuadros += Math.round((hasta - desde) * 30);
   return fila;
 });
+const acumulado = enCuadros / 30;
 
 escribirJson(montajeJson, {
   origen: crudo,
