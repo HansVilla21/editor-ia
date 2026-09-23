@@ -107,8 +107,8 @@ export const archivos = {
   oficial: (slug, extension) => `${slug}-oficial${extension}`,
 };
 
-/** Las entradas del catálogo de esa marca: por slug o por nombre. */
-export const enCatalogo = (catalogo, { marca, slug }) => {
-  const buscado = slug ?? slugDeMarca(marca);
-  return catalogo.logos.filter((l) => l.slug === buscado || (marca && slugDeMarca(l.nombre) === slugDeMarca(marca)));
-};
+/** Las entradas del catálogo de esa marca: con `slug`, solo ese; si no, por slug o por nombre. */
+export const enCatalogo = (catalogo, { marca, slug }) =>
+  catalogo.logos.filter((l) =>
+    slug ? l.slug === slug : l.slug === slugDeMarca(marca) || slugDeMarca(l.nombre) === slugDeMarca(marca),
+  );

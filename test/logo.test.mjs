@@ -29,14 +29,8 @@ const DATOS = [
   { title: "X", slug: "x", hex: "000000", source: "https://x.com", aliases: { aka: ["Twitter"] } },
   { title: "Spring", slug: "spring", hex: "6DB33F", source: "https://spring.io" },
   { title: "Spring", slug: "spring_creators", hex: "000000", source: "https://spring.com" },
-  {
-    title: "Marca Con Licencia",
-    slug: "marcaconlicencia",
-    hex: "FF0000",
-    source: "https://ejemplo.com",
-    guidelines: "https://ejemplo.com/pautas",
-    license: { type: "CC-BY-4.0", url: "https://creativecommons.org/licenses/by/4.0/" },
-  },
+  { title: "Marca Con Licencia", slug: "marcaconlicencia", hex: "FF0000", source: "https://ejemplo.com", guidelines: "https://ejemplo.com/pautas",
+    license: { type: "CC-BY-4.0", url: "https://creativecommons.org/licenses/by/4.0/" } },
 ];
 
 /** Una CDN de mentira: anota cada pedido y responde como jsDelivr. */
@@ -136,6 +130,15 @@ test("lo que ya está en el catálogo no se vuelve a bajar", async () => {
   assert.equal(r.estado, "ya-estaba");
   assert.equal(catalogo(raiz).logos.length, 1);
   assert.equal(catalogo(raiz).logos[0].fecha, FECHA);
+});
+
+test("con --slug busca ese ícono, aunque otro del mismo nombre ya esté en el catálogo", async () => {
+  const raiz = raizDePrueba();
+  const cdn = cdnFalsa({ iconos: { spring: SVG, spring_creators: SVG } });
+  await conseguirLogo({ marca: "Spring", raiz, fetch: cdn.fetch, fecha: FECHA });
+  const r = await conseguirLogo({ marca: "Spring", slug: "spring_creators", raiz, fetch: cdn.fetch, fecha: FECHA });
+  assert.equal(r.estado, "bajado");
+  assert.deepEqual(catalogo(raiz).logos.map((l) => l.archivo), ["spring.svg", "spring_creators.svg"]);
 });
 
 test("un logo nuevo se suma al catálogo sin pisar los otros", async () => {

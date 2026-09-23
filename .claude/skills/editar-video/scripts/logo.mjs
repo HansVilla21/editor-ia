@@ -263,7 +263,7 @@ async function principal() {
   const raiz = opciones.raiz ? resolve(opciones.raiz) : RAIZ;
   const marca = libres.join(" ");
   try {
-    const r = opciones.importar
+    const r = "importar" in opciones
       ? importarLogo({ marca, slug: opciones.slug, archivo: opciones.importar, fuente: opciones.fuente, raiz })
       : await conseguirLogo({ marca, slug: opciones.slug, blanco: Boolean(opciones.blanco), raiz });
     process.exitCode = informar(r);
