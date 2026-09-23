@@ -17,7 +17,7 @@ export type Palabra = {
   cuadroFin?: number;
 };
 
-/** Cabecera del panel: etiqueta arriba a la izquierda, tags a la derecha, título y fuente. */
+/** Cabecera del panel: etiqueta arriba a la izquierda, tags a la derecha, título, fuente y logo. */
 type Cabecera = {
   /** Tipo y posición, corto: "PASO 1 / 3". Va en monoespaciada con el acento. */
   etiqueta?: string;
@@ -27,6 +27,11 @@ type Cabecera = {
   titulo: string;
   /** De dónde sale lo que se muestra: "github.com/dueño/repo", "nombre-de-la-web.com". */
   fuente?: string;
+  /**
+   * La marca de la que habla la escena: el slug de public/logos/ que imprime logo.mjs ("github").
+   * Va a la izquierda del título, de 64 px. Si el archivo no está, el título va solo.
+   */
+  logo?: string;
 };
 
 export type Estado = "ok" | "alerta" | "error";
@@ -39,6 +44,12 @@ export type Escena =
       imagen?: string;
       /** Si no hay imagen: renglones de texto dentro de la tarjeta. */
       texto?: string[];
+      /**
+       * Si no hay imagen pero sí `logo`, el logo va grande en la tarjeta (y no se repite en la
+       * cabecera), con el primer renglón de `texto` como pie. Entra con pop en este segundo: la
+       * palabra que nombra la marca. Por defecto, cuando entra la tarjeta.
+       */
+      logoEn?: number;
     })
   | (Cabecera & {
       tipo: "lista";
@@ -123,4 +134,6 @@ export type Portada = {
   subtitulo?: string;
   /** Chips numerados debajo: los ítems del video. */
   items?: string[];
+  /** La marca de la que trata el video (slug de public/logos/): va arriba de la etiqueta. */
+  logo?: string;
 };

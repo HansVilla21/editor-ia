@@ -6,16 +6,25 @@
  */
 import React from "react";
 import { useCurrentFrame } from "remotion";
-import { blurIn } from "./anim";
+import { blurIn, pop } from "./anim";
 import { EscenaDelBloque } from "./escenas/EscenaDelBloque";
+import { logoGrandeEnTarjeta } from "./escenas/Tarjeta";
+import { anchoDelLogo, hayLogo, Logo } from "./Logo";
 import { colores, tipografia } from "./marca";
-import { CUERPO, MARGEN, Tag, tamanoQueEntra } from "./piezas";
+import { ANCHO_UTIL, CUERPO, MARGEN, Tag, tamanoQueEntra } from "./piezas";
 import type { BloqueEnCuadros } from "./tiempos";
 import type { Escena } from "./tipos";
 
-/** Etiqueta y tags (+0), título (+2) y fuente (+4): entran con blurIn escalonado. */
+/** El logo de la cabecera: 64 px de alto, a la izquierda del título, centrado con la línea. */
+const LOGO = 64;
+const HUECO_LOGO = 22;
+
+/** Etiqueta y tags (+0), logo y título (+2) y fuente (+4): entran escalonados. */
 const Cabecera: React.FC<{ escena: Escena; f0: number }> = ({ escena, f0 }) => {
   const cuadro = useCurrentFrame();
+  // Si la tarjeta ya muestra el logo grande, no se repite arriba.
+  const logo = hayLogo(escena.logo) && !logoGrandeEnTarjeta(escena) ? escena.logo : null;
+  const anchoTitulo = ANCHO_UTIL - (logo ? anchoDelLogo(logo, LOGO) + HUECO_LOGO : 0);
   return (
     <div style={{ position: "absolute", left: MARGEN, right: MARGEN, top: 64 }}>
       {escena.etiqueta || escena.tags?.length ? (
@@ -30,20 +39,22 @@ const Cabecera: React.FC<{ escena: Escena; f0: number }> = ({ escena, f0 }) => {
           </span>
         </div>
       ) : null}
-      <div
-        style={{
-          marginTop: 18,
-          fontFamily: tipografia.familia,
-          fontWeight: tipografia.pesoTitular,
-          fontSize: tamanoQueEntra(escena.titulo, 84),
-          lineHeight: 1.05,
-          letterSpacing: "-0.035em",
-          color: colores.texto,
-          whiteSpace: "nowrap",
-          ...blurIn(cuadro, f0 + 2),
-        }}
-      >
-        {escena.titulo}
+      <div style={{ marginTop: 18, display: "flex", alignItems: "center", gap: HUECO_LOGO }}>
+        {logo ? <Logo slug={logo} alto={LOGO} style={pop(cuadro, f0 + 2)} /> : null}
+        <div
+          style={{
+            fontFamily: tipografia.familia,
+            fontWeight: tipografia.pesoTitular,
+            fontSize: tamanoQueEntra(escena.titulo, 84, anchoTitulo),
+            lineHeight: 1.05,
+            letterSpacing: "-0.035em",
+            color: colores.texto,
+            whiteSpace: "nowrap",
+            ...blurIn(cuadro, f0 + 2),
+          }}
+        >
+          {escena.titulo}
+        </div>
       </div>
       {escena.fuente ? (
         <div

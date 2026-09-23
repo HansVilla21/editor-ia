@@ -26,6 +26,12 @@ export const VIDEO_CUADROS = 785;
  */
 export const TITULAR: string[] = ["3 cosas que reviso", "antes de publicar"];
 
+/**
+ * Si el gancho nombra una marca: su logo (el slug de public/logos/ que imprime logo.mjs) va
+ * delante de la primera línea del titular, a la altura de la letra. null = sin logo.
+ */
+export const TITULAR_LOGO: string | null = null;
+
 /** Palabras o números que van con el acento en el titular y en la portada. Los subtítulos, sin color. */
 export const ENFASIS: string[] = ["3"];
 
@@ -81,6 +87,8 @@ export const BLOQUES: Bloque[] = [
       etiqueta: "3 / 3",
       titulo: "Mirar antes de renderizar",
       fuente: "previa.mjs",
+      // public/logos/nodedotjs.svg, de logo.mjs "Node.js" (con permiso). Si no está, el título va solo.
+      logo: "nodedotjs",
       texto: 'previa.mjs src/entries/mi-video.tsx MiVideo previa "0,90,240"',
       en: 15.99, // "comando"
       salida: ["3 cuadros en 1 hoja(s).", "Mirarlas antes de renderizar."],
@@ -126,7 +134,10 @@ export const CUES: Cue[] = [
 /** Píldora oscura detrás del texto, para fondos claros o con ruido y ropa clara. */
 export const PILDORA = { titular: false, subtitulos: false };
 
-/** La portada: se arma sobre public/<DIR>/portada.png, un cuadro extraído de la grabación. */
+/**
+ * La portada: se arma sobre public/<DIR>/portada.png, un cuadro extraído de la grabación.
+ * Con `logo` (slug de public/logos/), el logo de la marca del video va arriba de la etiqueta.
+ */
 export const PORTADA: Portada = {
   etiqueta: "ANTES DE PUBLICAR",
   titulo: "3 cosas",

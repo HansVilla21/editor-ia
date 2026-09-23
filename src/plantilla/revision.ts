@@ -4,7 +4,8 @@
  */
 import { hayDelVideo, MUSICA, VIDEO, VOZ } from "./archivos";
 import { medidasDelCta } from "./Cta";
-import { BLOQUES, CTA, ENCUADRE, TITULAR } from "./datos";
+import { BLOQUES, CTA, ENCUADRE, PORTADA, TITULAR, TITULAR_LOGO } from "./datos";
+import { logosQueFaltan } from "./Logo";
 import { BLOQUES_F, bloqueEn, CTA_F, DURACION, f } from "./tiempos";
 import { medidasDelTitular } from "./Titular";
 
@@ -39,6 +40,9 @@ export function avisos(): string[] {
   if (!hayDelVideo(VIDEO)) lista.push("Falta el video: se muestra el marcador.");
   else if (!hayDelVideo(VOZ)) lista.push("Falta voz.wav: suena el audio del video, sin nivelar.");
   if (!hayDelVideo(MUSICA)) lista.push("Sin musica.m4a: el video va sin música.");
+  for (const slug of logosQueFaltan([...BLOQUES.map((b) => b.escena?.logo), TITULAR_LOGO, PORTADA.logo])) {
+    lista.push(`Falta el logo "${slug}" en public/logos/: va sin logo. Con permiso, se baja con logo.mjs.`);
+  }
   return lista;
 }
 
