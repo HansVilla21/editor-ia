@@ -60,6 +60,30 @@ test("un estado viejo, sin la clave calibrado, también propone calibrar", () =>
   assert.equal(paso.clave, "falta-calibrar");
 });
 
+test("sin estilo entrenado pero con un video hecho, la calibración va antes que el estilo", () => {
+  const paso = siguientePaso({
+    revisiones: todoOk,
+    estado: { ...completo, estiloEntrenado: false, videosHechos: 1, calibrado: false },
+  });
+  assert.equal(paso.clave, "falta-calibrar");
+});
+
+test("ya calibrado y sin estilo entrenado, vuelve a proponer el estilo", () => {
+  const paso = siguientePaso({ revisiones: todoOk, estado: { ...completo, estiloEntrenado: false } });
+  assert.equal(paso.clave, "falta-entrenar");
+});
+
+test("lo que falta del entorno se nombra en palabras de usuario, no con los nombres internos", () => {
+  const revisiones = [
+    { nombre: "node", ok: true },
+    { nombre: "whisper", ok: false },
+    { nombre: "clave-gemini", ok: false },
+  ];
+  const { mensaje } = siguientePaso({ revisiones, estado: {} });
+  assert.match(mensaje, /la clave de Gemini/);
+  assert.doesNotMatch(mensaje, /clave-gemini/);
+});
+
 test("con todo hecho, no interrumpe", () => {
   const paso = siguientePaso({ revisiones: todoOk, estado: completo });
   assert.equal(paso, null);
