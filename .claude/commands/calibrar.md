@@ -1,0 +1,77 @@
+---
+description: Después del primer video, ocho preguntas cortas sobre cómo quedó. Cada respuesta ajusta el editor en un lugar concreto, y el próximo video sale más a tu medida.
+---
+
+Calibrá el editor con lo que la persona vio en su video. Hablá de vos, corto y sin jerga.
+
+## Antes
+
+- El video a calibrar es el último entregado: la carpeta más nueva de `videos/`. Si no hay ninguno, decile que esto sirve después del primer video, que lo hacen cuando tenga uno, y pará acá.
+- Leé `memory/preferencias.md` y `memory/reglas.md`. No preguntes lo que ya contestó en esta conversación (si ya pidió subtítulos más grandes, esa no va).
+- Se puede correr de nuevo después de cualquier video: las preguntas son las mismas.
+
+## Las preguntas, en un solo mensaje
+
+> Abrí tu video (`videos/<carpeta>/video-final.mp4`) y miralo una vez, con sonido. Después contestame lo que quieras de esto; lo que te pareció bien, saltealo.
+>
+> 1. **Cortes.** ¿Alguna palabra sonó cortada, sobre todo al final de una frase? ¿O quedaron pausas que se sienten largas?
+> 2. **Ritmo.** ¿Se siente lento, bien o apurado?
+> 3. **El final.** ¿Se siente pegado a tu última palabra, justo, o largo?
+> 4. **Subtítulos.** ¿Se leen cómodos, o los querés más chicos o más grandes?
+> 5. **Encuadre.** ¿Te ves bien ubicado? ¿Algo te corta la cabeza, o el texto te queda muy cerca de la cara?
+> 6. **Música.** ¿Está fuerte, bien, o casi no se oye? ¿Te gusta el tipo?
+> 7. **Efectos de sonido.** ¿Hay de más, están bien, o faltan?
+> 8. **Portada.** ¿Te gusta cómo salís? ¿La preferís mirando a cámara? ¿Que cambie de diseño en cada video, o siempre igual?
+
+Lo que no contesta o dice que está bien, no se toca.
+
+## Qué se cambia con cada respuesta, y dónde se escribe
+
+Cada respuesta va a **un** lugar. Las preferencias se escriben como dice el encabezado de `memory/preferencias.md` (solo la línea **Elegido**, con sus palabras y la fecha); las reglas, con el formato de `memory/reglas.md`.
+
+**1. Cortes**
+- *Una palabra sonó cortada, o una "s" final mocha:* más aire después de cada frase: `cortar.mjs … --tras 0.18` y `apretar.mjs … --tras 0.16` (de fábrica, 0,14 y 0,12). → Regla en `memory/reglas.md`, fase 2. Si la cortada fue la última palabra del video, se arregla como en la 3, el final.
+- *Pausas que se sienten largas:* mirar las `pausasInternas` que dejó `cortar.mjs` en su `tramos.json`. Si "Silencios" dice respiraciones naturales, pasar a todas las pausas (`memory/preferencias.md`). Si ya estaba en todas, subir `cortar.mjs --umbral` de a 2 dB (de −36 a −34; en un montaje de tomas, de −33 a −31) → `memory/decisiones.md`, "Umbrales de corte". Nunca bajar `--minimo` de 0,20 ni los umbrales de `apretar.mjs`: se comen los finales.
+- *Muy cortado, sin respirar:* "Silencios" → respiraciones naturales (sin `apretar.mjs`), en `memory/preferencias.md`.
+
+**2. Ritmo**
+- *Lento:* si "Silencios" dice respiraciones naturales, primero pasar a todas las pausas. Si ya estaba, "Velocidad" → 1,1× (fase 2c, `acelerar.mjs … 1.1`). → `memory/preferencias.md`.
+- *Apurado:* si se aceleró, "Velocidad" → 1×; si no, "Silencios" → respiraciones naturales. → `memory/preferencias.md`.
+
+**3. El final**
+- *Pegado a la última palabra:* más toma real al cerrar: `cortar.mjs … --cola 1.5` (de fábrica 1,2) y, en una grabación con tomas, la última pieza de la EDL termina 1,6 s después de la última palabra (de fábrica 1,3). Siempre que siga mirando a cámara: si baja la vista antes, manda el último cuadro bueno. → Regla en `memory/reglas.md`, fase 2, "El final".
+- *Largo:* `cortar.mjs … --cola 0.8`, y `VIDEO_CUADROS` en `datos.ts` terminando entre 0,6 y 0,8 s después de la última palabra. → Regla en `memory/reglas.md`, fase 2.
+- *Terminó mirando a otro lado, o en un gesto raro:* preguntale en una línea si prefiere cortar antes o cerrar con una tarjeta → "Final" en `memory/preferencias.md`.
+
+**4. Subtítulos**
+- *Se leen chicos:* subir a 66 px. *Se leen grandes:* bajar a 52 px (de fábrica, 58). Va en `subtitulos.tamano` de `src/<slug>/marca.ts` en cada video. → Tamaño en "Subtítulos" de `memory/preferencias.md`.
+- *Mucho texto de golpe:* modo "solo palabras clave" → "Subtítulos" de `memory/preferencias.md`.
+- *No se leen sobre la ropa:* `PILDORA.subtitulos: true` en `datos.ts`. Es de esa grabación: no se escribe nada, salvo que diga que se viste siempre así (entonces, regla en `memory/reglas.md`, fase 7).
+
+**5. Encuadre**
+- *La cabeza cortada, o el texto sobre la cara:* volver a medir con `cara.mjs public/<slug>/video.mp4 src/<slug>/encuadre.json --cuadros 16`, mirar `guia.png` y copiar `{cy, pelo, menton}` a `ENCUADRE`. → Regla en `memory/reglas.md`, fase 6: "medir siempre con `--cuadros 16`".
+- *Muy lejos o muy cerca de la cámara:* es de la grabación, no del editor. Pasale el consejo de distancia de `/antes-de-grabar`; no se escribe nada.
+
+**6. Música**
+- *Está fuerte:* bajarla a −36. *No se oye:* subirla a −30. Va en `nivelar.mjs <tramo> public/<slug>/musica.m4a <nivel>` (de fábrica, −33). Después del render, `mezcla.mjs` tiene que seguir dando música y efectos entre 12 y 20 dB por debajo de la voz. → Volumen en "Música" de `memory/preferencias.md`.
+- *El tipo no:* qué quiere, con sus palabras, para `musica.mjs … --pedido "<sus palabras>"`. → Tipo en "Música" de `memory/preferencias.md`, y la pista en "Música" de `memory/decisiones.md` como descartada.
+- *Sin música:* "Música" → no, en `memory/preferencias.md`.
+
+**7. Efectos de sonido**
+- *De más:* "Efectos" → pocos (`CUES` vacío en `datos.ts`), en `memory/preferencias.md`. Si lo que molesta es el volumen y no la cantidad: `bus` de 0,5 a 0,4 en `.claude/skills/editar-video/referencias/efectos.json`, con una nota en el renglón "Bus de efectos" de `.claude/skills/editar-video/referencias/sonido.md`: `— calibración del <fecha>: "<sus palabras>". Reemplazó a: 0,5`.
+- *Faltan:* "Efectos" → muchos (un efecto en cada gráfico que entra, en `CUES`), en `memory/preferencias.md`.
+
+**8. Portada**
+- *Mirando a cámara:* "Portada", mirada → siempre al lente. Si no hay un cuadro así en la grabación, pasale el consejo de mirar al lente 1 o 2 segundos al empezar y al terminar (`/antes-de-grabar`).
+- *Que cambie en cada video, o siempre igual:* "Portada", composición.
+- *No le gusta cómo sale:* "Portada" → que elija entre 2 o 3 opciones, aunque hubiera dicho que elijas vos.
+- Todo en "Portada" de `memory/preferencias.md` (fase 10).
+
+Si una respuesta no entra en ninguna de estas, seguí "Cómo convertir una corrección en regla" de `/nuevo-video` (`.claude/commands/nuevo-video.md`, sección 6).
+
+## Cerrar
+
+1. Contale en tres o cuatro líneas qué ajustaste y dónde quedó: "Listo: subtítulos grandes y música más baja (en tus preferencias), y más aire al final de cada frase (regla nueva)."
+2. Ofrecé rehacer el video con los ajustes: "¿Querés que lo rehaga con esto? Sale como una versión nueva y la anterior queda." Con el sí, se rehace desde la fase más temprana que cambió, como en la sección 6 de `/nuevo-video`.
+3. Poné `calibrado: true` en `estado.json`.
+4. Agregá una línea en "Calibración" de `memory/decisiones.md`: la fecha, el video y qué se ajustó (o "sin cambios", si todo estaba bien).
