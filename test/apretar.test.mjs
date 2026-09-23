@@ -18,22 +18,30 @@ const DURACION = 3.3;
 const FIN_S = 1.15;
 const PAUSA = [1.15, 1.75];
 let apretado;
+let conAgudos;
 
-before(() => {
+/** La primera palabra puede traer agudos propios, como una vocal de verdad (armónicos arriba de 4 kHz). */
+function apretarClip(nombre, agudosDeLaVocal) {
+  const vocal = tono(220, 0.3, 0.65);
   const voz = juntar(
     silencio(0.35),
-    tono(220, 0.3, 0.65),
+    agudosDeLaVocal ? mezclar(vocal, banda(0.65, 4200, 10800, { rmsDb: agudosDeLaVocal })) : vocal,
     banda(0.15, 4200, 10800, { rmsDb: -40 }),
     silencio(0.6),
     tono(330, 0.3, 0.65),
     silencio(0.9),
   );
-  const clip = crearClip(carpeta, "apretar", mezclar(voz, banda(DURACION, 80, 300, { rmsDb: -50 })));
-  const video = join(carpeta, "apretado.mp4");
-  const mapa = join(carpeta, "quitados.json");
+  const clip = crearClip(carpeta, nombre, mezclar(voz, banda(DURACION, 80, 300, { rmsDb: -50 })));
+  const video = join(carpeta, `${nombre}.mp4`);
+  const mapa = join(carpeta, `${nombre}-quitados.json`);
   const r = correr("apretar.mjs", [clip, video, mapa]);
   assert.equal(r.status, 0, r.stderr);
-  apretado = { clip, video, mapa: leerJson(mapa) };
+  return { clip, video, mapa: leerJson(mapa) };
+}
+
+before(() => {
+  apretado = apretarClip("apretar", null);
+  conAgudos = apretarClip("con-agudos", -50);
 });
 
 test("apretar saca la pausa de 0,6 s entre dos palabras", () => {
@@ -46,6 +54,11 @@ test("apretar saca la pausa de 0,6 s entre dos palabras", () => {
 
 test("apretar no toca la 's' que cierra la palabra", () => {
   for (const [a] of apretado.mapa.quitados) assert.ok(a >= FIN_S + 0.05, `corta en ${a}, la "s" termina en ${FIN_S}`);
+});
+
+test("apretar no toca la 's' aunque la vocal de antes tenga agudos", () => {
+  assert.equal(conAgudos.mapa.quitados.length, 1, JSON.stringify(conAgudos.mapa.quitados));
+  for (const [a] of conAgudos.mapa.quitados) assert.ok(a >= FIN_S + 0.05, `corta en ${a}, la "s" termina en ${FIN_S}`);
 });
 
 test("apretar no toca el primer 0,3 s ni los últimos 0,8 s", () => {

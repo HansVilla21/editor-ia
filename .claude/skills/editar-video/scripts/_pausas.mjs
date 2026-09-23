@@ -23,6 +23,7 @@ const BANDA_ALTA = "highpass=f=4000,highpass=f=4000,lowpass=f=11000,lowpass=f=11
 const SIBILANTE = 26; // dB por debajo de la trama más aguda que todavía cuentan como "s"
 const TRAS_VOZ = 8; // tramas (0,16 s) después de voz en las que una trama aguda es su consonante
 const ANTES_VOZ = 4; // tramas (0,08 s) antes de voz
+const VOCAL = 10; // dB que la banda alta de una vocal queda, como mínimo, por debajo del total
 
 const r3 = (n) => Math.round(n * 1000) / 1000;
 
@@ -56,7 +57,11 @@ export function detectarPausas({ db, agudo }, { hondo = -42, borde = -33, nucleo
   const n = db.length;
   const tope = percentil(agudo, 99) - SIBILANTE;
   const esAgudo = (i) => agudo[i] > tope;
-  const voz = Array.from({ length: n }, (_, i) => db[i] >= borde && !esAgudo(i));
+  // Voz es una trama fuerte cuya banda alta queda muy por debajo del total: una vocal. Medir
+  // "no aguda" contra el tope del archivo no sirve para esto: las vocales fuertes tienen sus
+  // agudos a menos de 26 dB de la "s" más fuerte, y la "s" final de la palabra se queda sin voz
+  // al lado que la proteja (pasó con una grabación real de iPhone).
+  const voz = Array.from({ length: n }, (_, i) => db[i] >= borde && agudo[i] <= db[i] - VOCAL);
 
   const sibilante = new Array(n).fill(false);
   for (let i = 0; i < n; i++) {
