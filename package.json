@@ -15,6 +15,7 @@
     "doctor": "node scripts/doctor.mjs",
     "whisper": "node scripts/whisper.mjs",
     "efectos": "node .claude/skills/editar-video/scripts/efectos.mjs --bajar",
+    "nuevo": "node scripts/nuevo-video.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

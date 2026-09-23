@@ -1,5 +1,5 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { colores, tipografia } from "./marca";
+import { colores, tipografia } from "./plantilla/marca";
 
 /**
  * Los 3 segundos que confirman que la cadena entera funciona.
