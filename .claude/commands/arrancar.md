@@ -1,10 +1,12 @@
 ---
-description: Deja el proyecto listo para editar. Se corre una sola vez, la primera.
+description: Deja el proyecto listo para editar y pregunta cómo querés tus videos. Se corre la primera vez; si se vuelve a correr, salta lo que ya está hecho.
 ---
 
 Dejá el proyecto funcionando de punta a punta.
 
-Hablá en español, de vos, y no des nada por sabido: quien corre esto puede no haber usado nunca una terminal. Nada de jerga sin explicar.
+Hablá en español, de vos, y no des nada por sabido: quien corre esto puede no haber usado nunca una terminal. Nada de jerga sin explicar. Los textos de acá están escritos de vos; si la persona te escribe de tú o de usted, hablale como ella.
+
+**Si ya se corrió antes** (existe `estado.json`, `npm run doctor` da todo OK y existe `out/prueba.mp4`), no repitas la instalación: decí en una línea que el editor ya funciona y andá directo al primer paso que falte. Casi siempre es el 7, las preferencias.
 
 ## 0. Antes de nada: Node y la carpeta
 
@@ -54,24 +56,54 @@ Los videos llevan sonidos cortos: un whoosh en los cambios de plano, clics, un i
 
 Corré `npm run render`.
 
-Si sale `out/prueba.mp4`, la cadena completa funciona: Remotion, ffmpeg y Chrome. Decíselo con esas palabras, porque es la señal de que ya puede trabajar. Invitalo a abrir el archivo.
+Si sale `out/prueba.mp4`, la cadena completa funciona: Remotion, ffmpeg y Chrome. Decíselo simple, porque es la señal de que ya puede trabajar: "Funciona: el editor ya puede armar un video de punta a punta." Invitalo a abrir el archivo.
 
 Si falla, leé el error y resolvelo antes de seguir. No sigas con un render roto. Un error `spawn … chrome-headless-shell.exe ENOENT` en Windows casi siempre es la ruta demasiado larga del paso 0.
 
 ## 6. Dejar anotado el estado
 
-Escribí `estado.json` en la raíz:
+Si no existe, escribí `estado.json` en la raíz:
 
 ```json
-{ "estiloEntrenado": false, "videosHechos": 0 }
+{ "preferencias": false, "estiloEntrenado": false, "videosHechos": 0, "calibrado": false }
 ```
 
-## 7. Pedir las referencias
+Si ya existe, no lo pises: sumale solo las claves que le falten, con esos valores.
+
+## 7. Tus preferencias
+
+Una sola ronda de preguntas, todas juntas en un mensaje. Cada una trae entre paréntesis el valor por defecto, que funciona bien: quien no sabe qué contestar no tiene que pensar nada. Mandá esto tal cual:
+
+> Antes de seguir, unas preguntas rápidas sobre cómo querés tus videos. Contestá con el número y tus palabras. Lo que no sepas, saltealo o decime "lo que vos digas": uso lo que va entre paréntesis. Todo se puede cambiar después.
+>
+> 1. **Tu nombre**, y el de tu marca o negocio si tenés, escritos como corresponde: así los subtítulos no los escriben mal. *(Los saco de cómo los decís.)*
+> 2. **¿Dónde vas a publicar?** Instagram, TikTok, YouTube Shorts o varias. *(Varias.)*
+> 3. **En los textos de la pantalla, ¿de vos, de tú o de usted?** *(Como hables en el video.)*
+> 4. **Ritmo.** ¿Corto todas las pausas o dejo las respiraciones naturales? ¿Velocidad normal o un poco más rápido (1,1×)? *(Todas las pausas, velocidad normal.)*
+> 5. **Subtítulos.** ¿De a 2 o 3 palabras, siguiendo tu voz; solo las palabras clave; o sin subtítulos? *(De a 2 o 3 palabras.)*
+> 6. **Música de fondo.** ¿Sí o no? Si sí, ¿de qué tipo, con tus palabras? *(Sí: instrumental, con ritmo, bajita debajo de tu voz.)*
+> 7. **Logos.** Cuando nombres una app o una marca, puedo poner su logo oficial. ¿Lo bajo sin preguntarte, te pregunto cada vez, o nunca? *(Te pregunto cada vez.)*
+>
+> Lo demás —la portada, los efectos, cómo termina el video— lo ves en tu primer video y lo ajustamos después. Y si tenés colores o logo propios, pasame cuando quieras una captura de tu perfil o de tu logo y los cargo.
+
+Con la respuesta:
+
+- **Escribí `memory/preferencias.md`**, siguiendo las instrucciones de arriba de ese archivo: en cada sección que tocó una pregunta, reemplazá solo la línea **Elegido**, con la fecha. La pregunta 1 va en "Tu nombre y el de tu marca", la 2 en "Plataforma", la 3 en "Trato en los textos de pantalla", la 4 en "Silencios" y en "Velocidad", la 5 en "Subtítulos" (la línea del modo), la 6 en "Música" (la línea de sí o no, y el tipo) y la 7 en "Logos de otras marcas" (solo logos: no cuenta como permiso para bajar música). Lo que saltó o contestó con "no sé": `por defecto` y lo que dijo. Titular, efectos, portada y final quedan `(sin preguntar)`.
+- Si contestó con algo que no está entre las opciones, anotalo con sus palabras y, si no se puede hacer con el editor, decíselo en una línea y proponé lo más parecido.
+- Si pasó una captura de su marca, seguí `.claude/skills/mi-marca/SKILL.md` para llenarla. Si no, no insistas.
+- Contale en dos o tres líneas qué quedó anotado ("Anotado: tu nombre va como *Ana Ruiz*, subtítulos de a 2 o 3 palabras, música tranqui, te pregunto antes de cada logo") y dónde está el archivo, por si lo quiere cambiar a mano.
+- Poné `preferencias: true` en `estado.json`.
+
+Si contesta "elegí vos" a todo, es una respuesta: `por defecto` y sus palabras en cada sección de las siete preguntas. Si dice que ahora no, dejá el archivo como está. En los dos casos poné `preferencias: true` igual, decile que usás los valores por defecto y que lo que no le guste del primer video se cambia con decírtelo, y no vuelvas a preguntar.
+
+## 8. Pedir las referencias
 
 Cerrá con esto, que es lo más importante de todo el arranque:
 
-> Listo, ya podés editar.
+> Listo, ya podés pasarme videos para editar.
 >
-> Ahora falta enseñarle tu estilo. Pasame 2 o 3 videos que te gusten —con el enlace alcanza— y contame **qué te gusta de cada uno**. Con eso mido cómo están hechos y armo tu estilo.
+> Ahora falta que me enseñes tu estilo. Pasame 2 o 3 videos que te gusten —con el enlace alcanza— y contame **qué te gusta de cada uno**. Con eso mido cómo están hechos y armo tu estilo. Si no los tenés a mano, escribí `/estudiar` cuando los tengas.
 >
-> Sin eso vas a editar con el estilo neutro: funciona, pero no se parece a vos.
+> Sin eso tus videos salen con un estilo neutro: funciona, pero no se parece a vos.
+>
+> Y si todavía no grabaste nada, escribí `/antes-de-grabar`: son consejos cortos para grabar de forma que el editor saque lo mejor.
