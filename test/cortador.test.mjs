@@ -77,6 +77,13 @@ function banda(s, desde, hasta, { rmsDb, picoDb }) {
   return suavizar(m);
 }
 
+/** Un golpe en la mesa: grave, fuerte, y se apaga en unas pocas tramas. */
+function golpe(s = 0.1) {
+  const m = new Float32Array(muestrasDe(s));
+  for (let i = 0; i < m.length; i++) m[i] = 0.5 * Math.exp(-i / SR / 0.025) * Math.sin((2 * Math.PI * 150 * i) / SR);
+  return m;
+}
+
 /** Un clic: ruido que arranca fuerte y se apaga, 0,12 s en total. */
 function clic(s = 0.12) {
   const m = new Float32Array(muestrasDe(s));
@@ -154,12 +161,13 @@ function niveles(m, paso = 0.005) {
 
 // ---------------------------------------------------------------- cortar
 
-// Palabra con "s" final suave, silencio, clic, silencio, palabra corta, silencio, última palabra y 2 s.
+// Palabra con "s" final suave, silencio, clic, golpe, palabra corta, silencio, última palabra y 2 s.
 // La "s" tiene el pico por debajo de −36 dB: ffmpeg la cuenta como silencio, igual que la cola de una
 // "s" de verdad.
 const PRINCIPAL = {
   finTono: 1.3,
   clic: [2.5, 2.62],
+  golpe: [3.0, 3.1],
   corta: [3.6, 3.78],
   ultima: [4.6, 5.4],
 };
@@ -174,7 +182,9 @@ before(() => {
       banda(0.2, 4200, 10800, { picoDb: -38 }),
       silencio(1.0),
       clic(),
-      silencio(0.98),
+      silencio(0.38),
+      golpe(),
+      silencio(0.5),
       tono(180, 0.3, 0.18),
       silencio(0.82),
       tono(260, 0.3, 0.8),
@@ -196,4 +206,29 @@ test("cortar conserva al menos 0,12 s de la 's' final después de la palabra", (
   while (fin < db.length && db[fin] > -65) fin++;
   const ese = (fin - finTono) * 0.005;
   assert.ok(ese >= 0.12, `quedaron ${ese.toFixed(3)} s de la "s"`);
+});
+
+test("cortar descarta el clic aislado: no queda como tramo", () => {
+  const [a, b] = PRINCIPAL.clic;
+  const pisados = principal.mapa.tramos.filter((t) => t.finOrigen > a && t.inicioOrigen < b);
+  assert.deepEqual(pisados, []);
+});
+
+test("cortar descarta un golpe grave que se apaga enseguida", () => {
+  const [a, b] = PRINCIPAL.golpe;
+  const pisados = principal.mapa.tramos.filter((t) => t.finOrigen > a && t.inicioOrigen < b);
+  assert.deepEqual(pisados, []);
+});
+
+test("cortar conserva una palabra corta aislada", () => {
+  const [a, b] = PRINCIPAL.corta;
+  assert.ok(principal.mapa.tramos.some((t) => t.inicioOrigen <= a && t.finOrigen >= b));
+});
+
+test("cortar no deja tramos sin una palabra adentro", () => {
+  const palabras = [[0.5, PRINCIPAL.finTono], PRINCIPAL.corta, PRINCIPAL.ultima];
+  for (const t of principal.mapa.tramos) {
+    const conPalabra = palabras.some(([a, b]) => t.finOrigen > a && t.inicioOrigen < b);
+    assert.ok(conPalabra, `el tramo ${t.inicioOrigen}-${t.finOrigen} no tiene voz`);
+  }
 });

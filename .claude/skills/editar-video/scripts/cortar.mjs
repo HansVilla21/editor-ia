@@ -14,6 +14,9 @@ import {
   morir,
   sondear,
   detectarSilencios,
+  leerPcm,
+  rms,
+  aDb,
   ffmpeg,
   escribirJson,
   temporal,
@@ -29,7 +32,7 @@ const AYUDA = `
 cortar.mjs — corta los silencios y deja el video listo para componer
 
   node .claude/skills/editar-video/scripts/cortar.mjs <entrada> <salida.mp4> <tramos.json> \\
-       [--umbral -36] [--minimo 0.28] [--antes 0.08] [--tras 0.14]
+       [--umbral -36] [--minimo 0.28] [--antes 0.08] [--tras 0.14] [--tramo-minimo 0.25]
 
 Recibe: la grabación (o el montaje de tomas, si la grabación era cruda).
 Devuelve: <salida.mp4> a 1080x1920 y 30 fps, y <tramos.json> con cada tramo que quedó,
@@ -42,6 +45,13 @@ Devuelve: <salida.mp4> a 1080x1920 y 30 fps, y <tramos.json> con cada tramo que 
   --tras     cuánto se deja después de cada frase. La cola de una "s" final tiene poca
              energía, ffmpeg la cuenta como silencio, y con menos de 0.14 se oye mocha
   --aire X   el atajo de antes: equivale a --antes X --tras max(X, 0.14)
+  --tramo-minimo
+             cuánta voz tiene que tener un sonido para quedarse, en segundos. Se cuenta
+             la energía entre 100 Hz y 1 kHz, donde viven las vocales. Con menos es un
+             clic, una moneda o una respiración, y se tira; salvo que tenga una sílaba
+             sostenida (0.08 s seguidos con voz, sin caer más de 10 dB), que es una
+             palabra corta y se queda. Un golpe en la mesa se apaga en una trama.
+             Los que se tiran quedan anotados en <tramos.json>, en "descartados".
 
 La entrada y la salida pueden ser el mismo archivo: se escribe aparte y recién al final
 se reemplaza.
@@ -63,6 +73,7 @@ const minimo = numero(opciones.minimo, 0.28);
 const aire = opciones.aire === undefined ? null : numero(opciones.aire, 0.08);
 const antes = numero(opciones.antes, aire ?? 0.08);
 const tras = numero(opciones.tras, Math.max(aire ?? 0, 0.14));
+const tramoMinimo = numero(opciones["tramo-minimo"], 0.25);
 
 const info = await sondear(entrada);
 if (!info.audio) morir("La entrada no tiene audio: no hay silencios que detectar.");
@@ -70,28 +81,78 @@ const duracion = info.duracion;
 
 const silencios = await detectarSilencios(entrada, { umbral, minimo, duracion });
 
-// Lo que se queda es el hueco entre silencios, con aire a los lados.
-// Un pedazo más corto que el aire es puro relleno: pasa cuando la grabación arranca o
-// termina en silencio, y si se cuela mete un jump cut falso en CORTES.
-const minimoTramo = Math.max(0.1, antes + 0.02);
-const bruto = [];
+// Los sonidos son los huecos entre silencios. ffmpeg decide por el pico de cada muestra, así
+// que un clic, una moneda o una respiración también cuentan como sonido.
+const sonidos = [];
 let t = 0;
 for (const [inicio, fin] of silencios) {
-  const a = t;
-  const b = inicio + tras;
-  // Sin sonido entre el silencio anterior y este (la grabación arranca callada) no hay tramo.
-  if (b - a > minimoTramo && inicio > a + antes) bruto.push([Math.max(0, a), Math.min(duracion, b)]);
-  t = Math.max(0, fin - antes);
+  if (inicio > t) sonidos.push([t, inicio]);
+  t = fin;
 }
-if (duracion - t > minimoTramo) bruto.push([t, duracion]);
+// Lo que queda después del último silencio cuenta si dura algo: cuando el audio termina un
+// poco antes que el video, ffmpeg deja un resto de milisegundos que no es sonido.
+if (duracion - t > 0.01) sonidos.push([t, duracion]);
+
+// Qué sonido es voz: la energía en la banda de las vocales (100 Hz a 1 kHz), en tramas de 20 ms.
+// Un clic o una moneda tienen el pico alto pero casi nada ahí; una palabra, aunque sea corta,
+// tiene una vocal sostenida.
+const PASO = 0.02;
+const muestreoVoz = 16000;
+const bandaVoz = await leerPcm(entrada, muestreoVoz, { filtro: "highpass=f=100,lowpass=f=1000" });
+const salto = Math.round(PASO * muestreoVoz);
+const nivelVoz = [];
+for (let i = 0; i + salto <= bandaVoz.length; i += salto) nivelVoz.push(aDb(rms(bandaVoz, i, i + salto)));
+
+// La sílaba sostenida es una racha de tramas con voz que no cae más de 10 dB desde su máximo:
+// una vocal mantiene el nivel, un golpe en la mesa se apaga en una trama.
+function medirVoz(a, b) {
+  let total = 0;
+  let racha = 0;
+  let maximo = -Infinity;
+  let sostenida = 0;
+  for (let i = Math.floor(a / PASO); i < Math.min(nivelVoz.length, Math.ceil(b / PASO)); i++) {
+    const nivel = nivelVoz[i];
+    if (nivel < umbral) {
+      racha = 0;
+      maximo = -Infinity;
+      continue;
+    }
+    total += 1;
+    if (nivel < maximo - 10) {
+      racha = 0;
+      maximo = -Infinity;
+    }
+    racha += 1;
+    maximo = Math.max(maximo, nivel);
+    sostenida = Math.max(sostenida, racha);
+  }
+  return { conVoz: total * PASO, sostenida: sostenida * PASO };
+}
+
+// Un sonido con menos voz que --tramo-minimo es un clic, una moneda o una respiración: si se
+// queda, es un parpadeo y un jump cut falso. La excepción es una sílaba sostenida de 0,08 s: eso
+// es una palabra corta, y una palabra no se tira.
+const SILABA = 0.08;
+const conVoz = [];
+const descartados = [];
+for (const [a, b] of sonidos) {
+  const { conVoz: tiempo, sostenida } = medirVoz(a, b);
+  if (tiempo >= tramoMinimo || sostenida >= SILABA) conVoz.push([a, b]);
+  else descartados.push({ inicio: Number(a.toFixed(3)), fin: Number(b.toFixed(3)) });
+}
+if (conVoz.length === 0) morir("No quedó ningún tramo con voz. Revisá el umbral.");
+
+const bruto = conVoz.map(([a, b]) => [Math.max(0, a - antes), Math.min(duracion, b + tras)]);
 
 // Dos tramos casi pegados son un tramo: cortar ahí solo mete un click.
 const tramos = [];
 for (const [a, b] of bruto) {
-  if (tramos.length && a - tramos[tramos.length - 1][1] < 0.12) tramos[tramos.length - 1][1] = b;
-  else tramos.push([a, b]);
+  if (tramos.length && a - tramos[tramos.length - 1][1] < 0.12) {
+    tramos[tramos.length - 1][1] = Math.max(tramos[tramos.length - 1][1], b);
+  } else {
+    tramos.push([a, b]);
+  }
 }
-if (tramos.length === 0) morir("No quedó ningún tramo con voz. Revisá el umbral.");
 
 const partes = [];
 const uniones = [];
@@ -158,14 +219,20 @@ escribirJson(mapaJson, {
   minimo,
   antes,
   tras,
+  tramoMinimo,
   silencioRestante: Number(porcentaje.toFixed(1)),
   cortes: tabla.map((f) => f.cuadro),
   tramos: tabla,
+  descartados,
 });
 
 console.log(`${tramos.length} tramos: ${fijo(duracion)} s -> ${fijo(finalInfo.duracion)} s (${fijo(100 * (1 - finalInfo.duracion / duracion), 1)} % recortado)`);
 console.log(`video en ${corta(salidaPedida)}`);
 console.log(`tramos y CORTES en ${corta(mapaJson)}`);
+if (descartados.length) {
+  const lista = descartados.map((d) => `${fijo(d.inicio)} s (${fijo(d.fin - d.inicio)} s)`).join(", ");
+  console.log(`${descartados.length} sonidos sin voz descartados (clics, monedas, respiraciones): ${lista}`);
+}
 console.log(`silencio restante: ${fijo(porcentaje, 1)} %`);
 
 if (porcentaje > 5) {
