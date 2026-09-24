@@ -11,14 +11,26 @@
  */
 import { spawnSync } from "node:child_process";
 import { createWriteStream, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { RAIZ, leerEntorno } from "./entorno.mjs";
+
 export const CARPETA_WHISPER = fileURLToPath(new URL("../.whisper", import.meta.url));
 export const MODELO_WHISPER = "small";
 export const WHISPER_VERSION = "1.5.5";
+
+/**
+ * Dónde está Whisper. Quien ya tiene whisper.cpp 1.5 en otro lado (con `main` y el modelo en la
+ * misma carpeta) lo indica una vez con WHISPER_DIR, en el entorno o en .env; una ruta relativa
+ * se toma desde la raíz del proyecto. Si no, .whisper/ dentro del proyecto.
+ */
+export function carpetaWhisper(entorno = leerEntorno()) {
+  const propia = String(entorno.WHISPER_DIR ?? "").trim();
+  return propia ? resolve(RAIZ, propia) : CARPETA_WHISPER;
+}
 
 // El mismo paquete que baja @remotion/install-whisper-cpp para la versión 1.5.5 en Windows.
 const PAQUETE_WINDOWS =
@@ -26,7 +38,7 @@ const PAQUETE_WINDOWS =
 
 const TAMANOS = { tiny: "unos 78 MB", base: "unos 148 MB", small: "unos 490 MB", medium: "1,5 GB", "large-v3": "3,1 GB" };
 
-export function whisperInstalado(carpeta = CARPETA_WHISPER, modelo = MODELO_WHISPER) {
+export function whisperInstalado(carpeta = carpetaWhisper(), modelo = MODELO_WHISPER) {
   if (!existsSync(carpeta)) return false;
   const archivos = readdirSync(carpeta);
   const hayPrograma = archivos.some((n) => /^(main|whisper-cli)(\.exe)?$/i.test(n));
@@ -86,10 +98,20 @@ async function instalarPrograma(carpeta) {
   }
 }
 
-export async function instalarWhisper({ carpeta = CARPETA_WHISPER, modelo = MODELO_WHISPER } = {}) {
+/** Lo que se dice cuando WHISPER_DIR apunta a una carpeta sin Whisper. */
+export const AYUDA_WHISPER_DIR = (carpeta, modelo = MODELO_WHISPER) =>
+  `WHISPER_DIR apunta a ${carpeta}, y ahí no encuentro el programa (main) y el modelo ` +
+  `(ggml-${modelo}.bin) de whisper.cpp 1.5. Corregí la ruta, o borrá WHISPER_DIR y corré ` +
+  "npm run whisper para instalarlo dentro del proyecto.";
+
+export async function instalarWhisper({ carpeta = carpetaWhisper(), modelo = MODELO_WHISPER, entorno = leerEntorno() } = {}) {
   if (whisperInstalado(carpeta, modelo)) {
     console.log(`Whisper ya está instalado en ${carpeta}, con el modelo ${modelo}.`);
     return;
+  }
+  // La carpeta de WHISPER_DIR es una instalación de la persona, fuera del proyecto: ahí no se baja nada.
+  if (String(entorno.WHISPER_DIR ?? "").trim() && resolve(carpeta) === carpetaWhisper(entorno)) {
+    throw new Error(AYUDA_WHISPER_DIR(carpeta, modelo));
   }
   const hayPrograma =
     existsSync(carpeta) && readdirSync(carpeta).some((n) => /^(main|whisper-cli)(\.exe)?$/i.test(n));

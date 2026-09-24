@@ -3,7 +3,9 @@
  *
  * Arranca con el estilo neutro: un punto de partida que se ve bien apenas instalás, no el
  * estilo definitivo de nadie. Lo que la persona escriba en su skill `mi-marca` se carga en
- * MI_MARCA, acá abajo, y es lo ÚNICO que hay que tocar: todo lo demás se deriva de ahí.
+ * MI_MARCA, acá abajo, y es lo ÚNICO que hay que tocar: todo lo demás se deriva de ahí. La
+ * excepción es `subtitulos.tamano`, que se cambia en la copia de un video si lo pide "Subtítulos"
+ * en memory/preferencias.md.
  *
  * Se carga en la base que copia `npm run nuevo`, así cada video nuevo sale con la marca.
  * Los videos ya hechos conservan la que tenían: volver a renderizarlos no les cambia la cara.

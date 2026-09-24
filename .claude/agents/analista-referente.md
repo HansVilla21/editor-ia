@@ -27,11 +27,24 @@ datos que no le sirven a nadie. No lo compenses midiendo todo.
 
 ## La regla que gobierna el informe
 
-**Gemini propone, los cuadros deciden.** Si el proyecto tiene un script de borrador con
-Gemini, corrélo primero: ahorra tiempo ubicando dónde mirar. Pero el borrador se equivoca
-con los fps, las tipografías, los colores, el texto en pantalla, el movimiento y los
-efectos de sonido. **Ningún número del borrador entra al informe sin que lo hayas visto en
-un cuadro.** Si no existe el script, no pasa nada: el informe sale igual, más lento.
+**Gemini propone, los cuadros deciden.** Antes de medir, pedí el borrador: ubica en uno a tres
+minutos dónde mirar, que es lo que más tiempo se come.
+
+```bash
+node .claude/skills/estudiar-referentes/scripts/borrador.mjs "<video>" \
+  "referencias/estudio/<slug>/borrador.md" --enfoque "<la frase del usuario, textual>"
+```
+
+Si la frase es deducida, pasala igual y decilo: `--enfoque "deducido: …"`. Si podés, corrélo
+en segundo plano y armá la hoja de contacto mientras tanto.
+
+- **Si dice que falta la clave de Gemini, o Gemini no contesta:** seguí sin borrador. El informe
+  sale igual, más lento. No toques `.env` ni busques la clave: avisalo en tu mensaje final.
+- **Si salió:** usá "Qué mirar y en qué segundo" como lista de lugares, y armá la tira de cada
+  punto con los cuadros que trae. Sus tiempos son aproximados y se equivoca con los fps, las
+  tipografías, los colores, el texto en pantalla, el movimiento y los efectos de sonido.
+  **Ningún dato del borrador entra al informe sin que lo hayas visto en un cuadro**, y el
+  borrador no se copia al informe: se queda al lado, como lo que es.
 
 Cada afirmación del informe va anclada a un segundo o a un número de cuadro. Una
 afirmación sin ancla no se escribe.
@@ -40,6 +53,7 @@ afirmación sin ancla no se escribe.
 
 - **Informe:** `referencias/estudio/<slug>.md`, en español.
 - **Cuadros clave:** hasta ocho, en `referencias/estudio/<slug>/`, JPG de 540 px de ancho.
+- **Borrador de Gemini:** `referencias/estudio/<slug>/borrador.md`, lo escribe `borrador.mjs`.
 - **Trabajo sucio:** la carpeta temporal de la sesión. Todo lo intermedio va ahí.
 
 No escribas en ningún otro lado. No toques `src/`, `memory/`, otras referencias ni git. No
@@ -130,7 +144,8 @@ Español, hasta 250 líneas, escrito para que alguien lo convierta en código si
 video. Trece secciones, en este orden:
 
 1. **Ficha.** Archivo, slug, duración, fps medidos, resolución, si tiene audio, fecha del
-   análisis, y el factor de conversión si hubo que escalar.
+   análisis, el factor de conversión si hubo que escalar, y si hubo borrador de Gemini (con
+   qué modelo) o no.
 2. **Qué dijo el usuario y qué lo produce.** Su frase textual, y abajo, en dos o tres
    líneas, qué recurso concreto genera esa sensación. Si la frase fue deducida, decilo acá.
 3. **Línea de tiempo.** Tabla: cuadro de inicio, cuadro de fin, qué se ve, qué se escucha,

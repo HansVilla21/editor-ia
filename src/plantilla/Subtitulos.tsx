@@ -78,9 +78,13 @@ export function agrupar(palabras: Palabra[], costuras: number[], fin: number): G
     .map((g, i) => {
       const proximo = grupos[i + 1];
       const ultimo = g[g.length - 1];
-      // Se sostiene hasta el bloque siguiente; en un silencio largo, hasta un segundo después.
-      const hasta = Math.min(proximo ? cuadroDe(proximo[0]) : fin, (ultimo.cuadroFin ?? f(ultimo.fin)) + 30, fin);
-      return { palabras: g, desde: cuadroDe(g[0]), hasta: Math.max(hasta, cuadroDe(g[0]) + 1) };
+      // Se sostiene hasta el bloque siguiente; en un silencio largo, hasta un segundo después; y
+      // nunca pasa un cambio de plano: con subtítulos de palabras clave hay huecos largos, y sin
+      // este tope la palabra saltaba al lugar del plano nuevo.
+      const desde = cuadroDe(g[0]);
+      const costura = costuras.find((c) => c > desde) ?? fin;
+      const hasta = Math.min(proximo ? cuadroDe(proximo[0]) : fin, (ultimo.cuadroFin ?? f(ultimo.fin)) + 30, costura, fin);
+      return { palabras: g, desde, hasta: Math.max(hasta, desde + 1) };
     })
     .filter((g) => g.desde < fin);
 }

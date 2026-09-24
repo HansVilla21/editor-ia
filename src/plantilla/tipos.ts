@@ -17,7 +17,7 @@ export type Palabra = {
   cuadroFin?: number;
 };
 
-/** Cabecera del panel: etiqueta arriba a la izquierda, tags a la derecha, título y fuente. */
+/** Cabecera del panel: etiqueta arriba a la izquierda, tags a la derecha, título, fuente y logo. */
 type Cabecera = {
   /** Tipo y posición, corto: "PASO 1 / 3". Va en monoespaciada con el acento. */
   etiqueta?: string;
@@ -27,6 +27,11 @@ type Cabecera = {
   titulo: string;
   /** De dónde sale lo que se muestra: "github.com/dueño/repo", "nombre-de-la-web.com". */
   fuente?: string;
+  /**
+   * La marca de la que habla la escena: el slug de public/logos/ que imprime logo.mjs ("github").
+   * Va a la izquierda del título, de 64 px. Si el archivo no está, el título va solo.
+   */
+  logo?: string;
 };
 
 export type Estado = "ok" | "alerta" | "error";
@@ -39,6 +44,12 @@ export type Escena =
       imagen?: string;
       /** Si no hay imagen: renglones de texto dentro de la tarjeta. */
       texto?: string[];
+      /**
+       * Si no hay imagen pero sí `logo`, el logo va grande en la tarjeta (y no se repite en la
+       * cabecera), con el primer renglón de `texto` como pie. Entra con pop en este segundo: la
+       * palabra que nombra la marca. Por defecto, cuando entra la tarjeta.
+       */
+      logoEn?: number;
     })
   | (Cabecera & {
       tipo: "lista";
@@ -93,6 +104,9 @@ export type Encuadre = {
   cx?: number;
 };
 
+/** Cuántos efectos suenan en el video ("Efectos de sonido" en memory/preferencias.md). */
+export type NivelEfectos = "ninguno" | "pocos" | "normales" | "muchos";
+
 /** Un efecto de sonido: su pico cae en el segundo `en`. */
 export type Cue = {
   clave: ClaveEfecto;
@@ -107,7 +121,7 @@ export type Cue = {
 export type Cta = {
   /** Segundo de la primera palabra del cierre. Desde ahí se ocultan los subtítulos. */
   desde: number;
-  /** El verbo, en el trato de la persona (mi-marca): "Comentá", "Comenta", "Escribí"… */
+  /** El verbo, en el trato de la persona ("Trato" en memory/preferencias.md): "Comentá", "Comenta", "Escribí"… */
   pide: string;
   /** La palabra que tienen que comentar. Va grande y con el acento. */
   palabra: string;
@@ -123,4 +137,6 @@ export type Portada = {
   subtitulo?: string;
   /** Chips numerados debajo: los ítems del video. */
   items?: string[];
+  /** La marca de la que trata el video (slug de public/logos/): va arriba de la etiqueta. */
+  logo?: string;
 };

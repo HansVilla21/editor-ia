@@ -105,13 +105,13 @@ Después del siguiente video hecho con el candidato, se le pregunta al usuario:
 
 - **Se queda:** se mueve a su sección con la fecha de hoy, se borra el valor anterior, y se
   deja la línea `Reemplazó a: 64 px, el 2026-09-24`.
-- **Vuelve:** se borra de "En prueba" y se anota en `memory/` para no volver a proponerlo.
+- **Vuelve:** se borra de "En prueba" y se anota en `memory/decisiones.md`, sección "Estilo", para no volver a proponerlo.
 
 ### 6.4 · Dejar constancia
 
 - Poné `estiloEntrenado: true` en `estado.json`. Es lo que hace que el proyecto deje de
   insistir con el entrenamiento al abrirse.
-- Agregá una línea a `memory/decisiones.md` —creá el archivo si no está— con la fecha, qué
+- Agregá una línea a `memory/decisiones.md`, sección "Estilo", con la fecha, qué
   referencias se estudiaron, qué se aprobó, qué quedó en prueba y qué se descartó con su
   motivo. Lo descartado importa tanto como lo aprobado: evita volver a discutirlo.
 - Los informes y los videos se quedan en `referencias/`, que está en `.gitignore`. No los

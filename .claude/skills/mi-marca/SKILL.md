@@ -136,10 +136,9 @@ y cuando estudia una referencia y está por recomendarte que copies algo.
 
 ## 6. Cómo hablás (opcional)
 
-`(vacío)`
+Tu nombre escrito como corresponde y el trato (vos, tú o usted) no van acá: viven en
+`memory/preferencias.md`, que se llena con las preguntas de `/arrancar`.
 
-- **Tu nombre, escrito como corresponde:** `(vacío)`
-- **Tratamiento:** ¿de vos, de tú, de usted? `(vacío)`
 - **Palabras que usás siempre:** `(vacío)`
 - **Palabras que no usás jamás:** `(vacío)`
 
@@ -156,3 +155,16 @@ Esto afecta los textos en pantalla y los títulos, no lo que vos decís hablando
   dice y no lo aplica.
 - Si te ve poniendo a mano un color o una tipografía que no está acá, te pregunta si querés
   agregarlo a este archivo. Así el sistema aprende una sola vez.
+
+## Lo que no es marca
+
+Este archivo es solo tu identidad visual y lo que nunca querés ver. Lo demás vive en
+`memory/`:
+
+- **Cómo querés tus videos** —tu nombre, el trato, la plataforma, el ritmo, la velocidad, los
+  subtítulos, el titular, la música, los efectos, la portada, cómo termina y los logos de otras
+  marcas—: `memory/preferencias.md`.
+- **Lo que corregiste una vez para siempre:** `memory/reglas.md`.
+
+Si una corrección es de marca (un color, una tipografía, tu logo, cómo aparecés, algo que no
+querés ver nunca), va acá. Si no, va allá.

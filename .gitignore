@@ -24,3 +24,15 @@ estado.json
 CLAUDE.local.md
 .DS_Store
 Thumbs.db
+
+# Lo que la persona escribe en memory/ es suyo: viajan el README y las plantillas, no las respuestas
+/memory/*
+!/memory/README.md
+!/memory/plantillas/
+
+# Lo de cada video (su composición, su transcripción y guia.png con la cara de la persona): viaja la plantilla
+/src/*/
+!/src/plantilla/
+!/src/entries/
+/src/entries/*
+!/src/entries/plantilla.tsx

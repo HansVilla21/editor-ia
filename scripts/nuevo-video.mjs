@@ -22,7 +22,7 @@ nuevo-video.mjs — arranca un video nuevo a partir de la plantilla
 <slug>: el nombre corto del video, en minúsculas, números y guiones (por ejemplo "mi-video").
 
 Crea:
-  src/<slug>/                         la composición (lo único que se edita es datos.ts)
+  src/<slug>/                         la composición (se edita datos.ts)
   src/entries/<slug>.tsx              la entrada, con los ids <Slug> y <Slug>Portada
   public/<slug>/                      los archivos del video (video.mp4, voz.wav, musica.m4a…)
   videos/<fecha>-<slug>/versiones/    los renders
@@ -132,7 +132,7 @@ export function nuevoVideo({ raiz, slug, fecha = fechaDeHoy() }) {
 function pasos(r) {
   const s = ".claude/skills/editar-video/scripts";
   const filas = [
-    [`${r.carpetaSrc}/`, "la composición: lo único que se edita es datos.ts"],
+    [`${r.carpetaSrc}/`, "la composición: se edita datos.ts"],
     [r.entrada, `la entrada, con los ids ${r.id} y ${r.idPortada}`],
     [`${r.carpetaPublic}/`, "acá van video.mp4, voz.wav, musica.m4a, portada.png y las capturas"],
     [`${r.carpetaVideos}/versiones/`, "acá van los renders"],
@@ -145,7 +145,8 @@ ${filas.map(([ruta, que]) => `  ${ruta.padEnd(ancho)}${que}`).join("\n")}
 
 Qué sigue (el detalle de cada paso está en las fases de la skill editar-video; las
 herramientas están en ${s}/):
-  1. Corte:     montar.mjs (si la grabación es cruda) → cortar.mjs → apretar.mjs
+  1. Corte:     montar.mjs (si la grabación es cruda) → cortar.mjs → apretar.mjs (salvo que
+                "Silencios" pida respiraciones naturales)
                 → acelerar.mjs solo si la persona lo pidió. Todo a ${r.carpetaPublic}/video.mp4
   2. Palabras:  transcribir.mjs + palabras.mjs sobre ese video final → ${r.carpetaSrc}/palabras.json
                 cortes.mjs → la línea CORTES para datos.ts
