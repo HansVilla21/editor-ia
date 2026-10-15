@@ -1,8 +1,8 @@
 /**
  * Entrada de Remotion de un video: registra el reel y su portada, a 1080x1920 y 30 fps.
  *
- * Render:   npx remotion render src/entries/<slug>.tsx <Id> videos/<carpeta>/versiones/v1-….mp4
- * Portada:  npx remotion still src/entries/<slug>.tsx <Id>Portada videos/<carpeta>/portada.png
+ * Render:   node scripts/render.mjs render src/entries/<slug>.tsx <Id> videos/<carpeta>/versiones/v1-….mp4
+ * Portada:  node scripts/render.mjs still src/entries/<slug>.tsx <Id>Portada videos/<carpeta>/portada.png
  * Studio:   npx remotion studio src/entries/<slug>.tsx
  */
 import React from "react";

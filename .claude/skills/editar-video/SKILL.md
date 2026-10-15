@@ -235,7 +235,7 @@ en `referencias/sonido.md`.
 ### 9. Render y master
 
 ```
-npx remotion render src/entries/<slug>.tsx <Id> videos/<carpeta>/versiones/vN-<qué cambió>.mp4
+node scripts/render.mjs render src/entries/<slug>.tsx <Id> videos/<carpeta>/versiones/vN-<qué cambió>.mp4
 mezcla.mjs videos/<carpeta>/versiones/vN-….mp4 public/<slug>/voz.wav <segundos de cada acento>
 nivelar.mjs videos/<carpeta>/versiones/vN-….mp4 videos/<carpeta>/video-final.mp4 -14 --copiar-video
 cuadros.mjs videos/<carpeta>/video-final.mp4 <scratch>/bordes --tiempos "<bordes de bloque>" --hoja 5
@@ -244,6 +244,17 @@ cuadros.mjs videos/<carpeta>/video-final.mp4 <scratch>/bordes --tiempos "<bordes
 La verificación de mezcla se corre sobre el render **sin normalizar**, no sobre el master. El master
 va a −14 LUFS con pico verdadero ≤ −1,3 dB. Con un video de 1440×2560, o varios videos a la vez,
 renderizar con `--concurrency=3 --timeout=120000`: con los valores por defecto el render se corta.
+
+**Siempre por el bundle fijo, nunca `npx remotion render` ni `npx remotion still` directo.** Cada llamada directa arma
+una copia nueva de `public/` en la carpeta temporal del sistema, y las de procesos cortados nunca se borran: en una
+máquina de trabajo llegaron a cientos de carpetas y decenas de GB, y llenaron el disco. `scripts/render.mjs` (y
+`previa.mjs`) usan un solo bundle por entrada en `build/<slug>/`:
+- se rehace solo cuando cambia algún archivo de `src/`, `public/` o la configuración, y dice cuál;
+- los que llevan 7 días sin usarse se borran solos; cuando el video queda aprobado, `node scripts/render.mjs borrar <slug>`;
+- nunca se borran todas las carpetas `remotion-*` de la carpeta temporal: puede haber otro render corriendo.
+
+Todo lo que hay en `public/` se copia en cada bundle. Cuando un video queda publicado, su `public/<slug>/` pasa a
+`archivo-public/<slug>/` (ignorado por git); para volver a renderizarlo, se devuelve.
 
 ### 10. Portada
 
@@ -262,7 +273,7 @@ alrededor de la cara (con `ENCUADRE`) y achica el texto si llegaría a tocar el 
 sobre el video dentro de un still devuelve el cuadro 0: por eso se monta el PNG.
 
 ```
-npx remotion still src/entries/<slug>.tsx <Id>Portada videos/<carpeta>/portada.png
+node scripts/render.mjs still src/entries/<slug>.tsx <Id>Portada videos/<carpeta>/portada.png
 ```
 
 ### 11. Entrega

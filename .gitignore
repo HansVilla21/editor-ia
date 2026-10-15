@@ -1,6 +1,11 @@
 node_modules/
 out/
 
+# Un bundle de Remotion por entrada (scripts/bundle-fijo.mjs): se rehace solo, no viaja en el repo
+/build/
+# El material de los videos ya publicados, fuera de public/ para que no se copie en cada bundle
+/archivo-public/
+
 # La clave de Gemini nunca se commitea
 .env
 .env.*
