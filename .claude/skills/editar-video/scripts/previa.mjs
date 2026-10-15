@@ -1,7 +1,9 @@
 /**
  * Fase 7 — mirar cuadros sueltos de la composición ANTES de renderizar el video entero.
  *
- * Un solo bundle para todos los cuadros: armarlo es lo que tarda, renderizar cada cuadro no.
+ * Usa el bundle fijo de build/<entrada>/ (scripts/bundle-fijo.mjs): se arma una vez, lo comparten las previas, los
+ * renders y la portada, y se rehace solo si algo cambió. Antes, cada previa dejaba en la carpeta temporal una copia de
+ * public/ que nunca se borraba.
  */
 import { readFileSync } from "node:fs";
 
@@ -69,11 +71,10 @@ if (opciones.props) {
 // Cada cuadro se renderiza en una pestaña nueva, y cada pestaña repite los avisos de la plantilla.
 avisosUnaVez();
 
-const { bundle } = await import("@remotion/bundler");
+const { asegurarBundle } = await import("../../../../scripts/bundle-fijo.mjs");
 const { selectComposition, renderStill } = await import("@remotion/renderer");
 
-console.log("Armando el bundle (es lo que tarda; después cada cuadro es rápido)…");
-const servidor = await bundle({ entryPoint: entrada, onProgress: () => {} });
+const servidor = await asegurarBundle(entrada);
 
 let composicion;
 try {

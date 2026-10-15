@@ -91,6 +91,12 @@ sacar algo del medio, se mueve, no se elimina.
 **No se inventan datos.** Si hay que mostrar una cifra en pantalla —estrellas de un
 repositorio, una fecha, un precio— se verifica contra la fuente antes de escribirla.
 
+**Se renderiza solo por el bundle fijo.** `node scripts/render.mjs render|still <entrada> <Id> <salida>` (y `npm run
+render`, que pasa por ahí). Nunca `npx remotion render` ni `npx remotion still` directo: cada llamada deja una copia de
+`public/` en la carpeta temporal del sistema, y así se llena el disco. El bundle vive en `build/<slug>/`, se rehace solo
+si algo cambió y se borra solo a los 7 días sin uso. Nunca se borran todas las carpetas `remotion-*` de la carpeta
+temporal. Detalle en la skill `editar-video`, sección 9.
+
 **Archivos de más de 300 líneas se parten.**
 
 ## Convenciones

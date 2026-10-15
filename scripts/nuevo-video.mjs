@@ -154,9 +154,9 @@ herramientas están en ${s}/):
   4. Datos:     llenar ${r.carpetaSrc}/datos.ts (VIDEO_CUADROS, BLOQUES, CORTES, ENCUADRE, TITULAR, CTA…)
   5. Revisar:   previa.mjs ${r.entrada} ${r.id} <scratch>/previa "0,…" --escala 0.35 --hoja 5
   6. Sonido:    voz.mjs, actividad.mjs, efectos (npm run efectos) y música (musica.mjs, tramo.mjs)
-  7. Render:    npx remotion render ${r.entrada} ${r.id} ${r.carpetaVideos}/versiones/v1-primera.mp4
+  7. Render:    node scripts/render.mjs render ${r.entrada} ${r.id} ${r.carpetaVideos}/versiones/v1-primera.mp4
                 → mezcla.mjs → nivelar.mjs … video-final.mp4 -14 --copiar-video
-  8. Portada:   npx remotion still ${r.entrada} ${r.idPortada} ${r.carpetaVideos}/portada.png
+  8. Portada:   node scripts/render.mjs still ${r.entrada} ${r.idPortada} ${r.carpetaVideos}/portada.png
 
 Para verlo mientras se arma: npx remotion studio ${r.entrada}
 `;

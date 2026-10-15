@@ -11,7 +11,7 @@
   "scripts": {
     "test": "node --test",
     "studio": "remotion studio src/index.ts",
-    "render": "remotion render src/index.ts Prueba out/prueba.mp4",
+    "render": "node scripts/render.mjs render src/index.ts Prueba out/prueba.mp4",
     "doctor": "node scripts/doctor.mjs",
     "whisper": "node scripts/whisper.mjs",
     "efectos": "node .claude/skills/editar-video/scripts/efectos.mjs --bajar",
